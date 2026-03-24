@@ -16,13 +16,15 @@
 ## Domain Model
 ```mermaid
 classDiagram
-    Animal "1" <|-- "2,3" Duck
+    Animal "1" <|-- "2,3" Duck : contains
     Animal <|-- Fish
-    Animal <|-- Zebra
-    Animal : +int age
-    Animal : +String gender
-    Animal: +isMammal()
-    Animal: +mate()
+    Animal <|-- Zebra : contains
+    class Animal{
+        +int age
+        +String gender
+        +isMammal()
+        +mate()
+    }
     class Duck{
       +String beakColor
       +swim()
