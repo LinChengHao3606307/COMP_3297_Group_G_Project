@@ -16,26 +16,44 @@
 ## Domain Model
 ```mermaid
 classDiagram
-    Animal "1" <|-- "2,3" Duck : contains
-    Animal <|-- Fish
-    Animal <|-- Zebra : contains
-    class Animal{
-        +int age
-        +String gender
-        +isMammal()
-        +mate()
+
+    Course <|-- Advanced_Course
+    Course <|-- General_Course
+
+    Student <|-- CS_Student
+    Student <|-- Non_CS_Student
+
+    CS_Student "1..*" -- "0..*" Course : take
+    Non_CS_Student "1..*" -- "0..*" General_Course : take
+    Instructor "1" -- "0..*" Advanced_Course : teach
+    Instructor "1" -- "0..*" Teaching_Team : join
+    Student "1..*" -- "0..1" Teaching_Team : join
+    Teaching_Team "1" -- "1" General_Course : teach
+    
+    class Course{
+        int course_code
+        String course_name
+        int credit_value
+        int enrolment_quota
     }
-    class Duck{
-      +String beakColor
-      +swim()
-      +quack()
+    class Advanced_Course{
+
     }
-    class Fish{
-      -int sizeInFeet
-      -canEat()
+    class General_Course{
+
     }
-    class Zebra{
-      +bool is_wild
-      +run()
+    class Student{
+        int uid
+        String name
+    }
+    class CS_Student{
+    }
+    class Non_CS_Student{
+    }
+    class Instructor{
+        int uid
+        String name
+    }
+    class Teaching_Team{
     }
 ```
