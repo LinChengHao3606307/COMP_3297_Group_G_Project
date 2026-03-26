@@ -32,44 +32,51 @@
 ## Domain Model
 ```mermaid
 classDiagram
-
-    Course <|-- Advanced_Course
-    Course <|-- General_Course
-
-    Student <|-- CS_Student
-    Student <|-- Non_CS_Student
-
-    CS_Student "1..*" -- "0..*" Course : take
-    Non_CS_Student "1..*" -- "0..*" General_Course : take
-    Instructor "1" -- "0..*" Advanced_Course : teach
-    Instructor "1" -- "0..*" Teaching_Team : join
-    Student "1..*" -- "0..1" Teaching_Team : join
-    Teaching_Team "1" -- "1" General_Course : teach
     
-    class Course{
-        int course_code
-        String course_name
-        int credit_value
-        int enrolment_quota
-    }
-    class Advanced_Course{
+    Product "1" -- "*" Report : belong_to
+    Product "1" -- "1..*" Tester : test
+    Product "1" -- "1" Product_Owner : own
+    Product "1" -- "1..*" Developer : work_with
 
-    }
-    class General_Course{
+    Report "1" -- "1" Tester : written_by
+    Report "*" -- "1" Product_Owner : reviewed_by
+    Report "*" -- "0..1" Developer : claimed_by
 
+    Product_Owner "1" -- "*" Report_Comment : write
+    
+    Developer "1..*" -- Product_Owner : work_under
+    Developer "*" -- "*" Report_Comment : write
+
+    Report_Comment "*" -- "1" Report : belong_to
+    class Product{
+        CharField_50 name
+        IntegerField id
+        CharField_20 version
     }
-    class Student{
-        int uid
-        String name
+    class Report{
+        IntegerField id
+        CharField_20 status
+        CharField_20 priority
+        CharField_20 severity
+        TextField assigned_to
+        TextField title
+        TextField description
+        TextField steps_to_reproduce
+        TextField tester_email
     }
-    class CS_Student{
+    class Report_Comment{
+        IntegerField id
+        DateTimeField date
+        TextField comment
     }
-    class Non_CS_Student{
+    class Tester{
+        IntegerField id
     }
-    class Instructor{
-        int uid
-        String name
+    class Product_Owner{
+        IntegerField id
     }
-    class Teaching_Team{
+    class Developer{
+        IntegerField id
     }
+
 ```
