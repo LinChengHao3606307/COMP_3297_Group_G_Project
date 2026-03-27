@@ -14,8 +14,14 @@
 - Don't push venv, cache, IDE settings file onto git repo e.g.  `.venv` `.idea` `.vscode/`. The `.gitignore` should take care of this tho
 - Don't update stuff without testing that they work
 - Don't commit everything at once. If you made very different changes on two files, commit twice with proper message
+- Make sure to commit the migration files after modifying the models and making migrations
 - Don't forget to actually push your changes
 - Feel free to ask if you are not unsure about something. Explaining is faster than debugging :D
+
+### Useful commands
+- `python manage.py runserver` to run the server
+- `python manage.py makemigrations` after modifying the models to generate the changelist for migration 
+- `python manage.py migrate` to actually write the changes to the database
 
 ## Important docs:
 - [vision doc](https://connecthkuhk-my.sharepoint.com/:w:/g/personal/u3606307_connect_hku_hk/IQD9kZZRnJiPTIxSGjKxoOG3Aex-NwIiyNTZywPfMKIx8PU?e=etTHGP)
