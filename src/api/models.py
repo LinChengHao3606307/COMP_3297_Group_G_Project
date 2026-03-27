@@ -25,17 +25,18 @@ class Report(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
 
-class Comment(models.Model):
-    _id = models.AutoField(primary_key=True)
-    report = models.ForeignKey(Report, on_delete=models.CASCADE)
-
-    text = models.TextField()
-
-    timestamp = models.DateTimeField(auto_now_add=True)
-
-
 class User(models.Model):
     _id = models.AutoField(primary_key=True)
     person_id = models.IntegerField()
     # Tester, Developer, Project Owner
     role = models.CharField(max_length=20, choices=(("T", "Tester"), ("D", "Developer"), ("PO", "Project Owner")))
+
+
+class Comment(models.Model):
+    _id = models.AutoField(primary_key=True)
+    report = models.ForeignKey(Report, on_delete=models.CASCADE)
+    poster = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    text = models.TextField()
+
+    timestamp = models.DateTimeField(auto_now_add=True)
