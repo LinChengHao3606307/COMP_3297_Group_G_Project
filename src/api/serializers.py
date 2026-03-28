@@ -46,7 +46,6 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def validate_declared_role(self, value):
         value = value.lower().replace(" ", "")
-        print(value)
         if value != "productowner" and value != "developer":
             raise serializers.ValidationError("Comment is not submitted by product owner or developer!")
         return user_distinguisher[value]
