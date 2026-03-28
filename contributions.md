@@ -14,3 +14,11 @@
 - Set up the base django project and REST framework. Configured the router and urls
 - Created the model definitions
 - Wrote logic for ReportSerializer and ReportViewSet.create()
+
+## Wong Sonny
+### Vision Document
+- Refined features and stakeholder profile sections (v0.2.0)
+### Partial Domain Model
+- Did not participate in making this
+### Source Code
+- Wrote logic for CommentSerializer and CommentViewSet.create()
