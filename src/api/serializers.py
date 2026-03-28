@@ -26,7 +26,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class ReportSerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(slug_field="name", queryset=Product.objects.all())
-    owner = serializers.SlugRelatedField(slug_field="user_id", queryset=User.objects.filter(role='T'))
+    owner = serializers.SlugRelatedField(slug_field="id", queryset=User.objects.filter(role='T'))
 
     class Meta:
         model = Report
