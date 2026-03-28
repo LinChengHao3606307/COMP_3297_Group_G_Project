@@ -1,4 +1,5 @@
-from rest_framework import serializers, permissions
+from django.db.models import Q
+from rest_framework import serializers
 from .models import *
 
 role_to_code = {"productowner": "PO", "developer": "D", "tester": "T"}
@@ -43,20 +44,16 @@ class ReportSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    owner = UserSerializer(read_only=True)
-    declared_role = serializers.CharField(write_only=True)
-    declared_user_id = serializers.IntegerField(write_only=True)
+    owner = serializers.SlugRelatedField(slug_field="user_id", queryset=User.objects.filter(Q(role='PO') | Q(role='D')))
 
     class Meta:
         model = Comment
         fields = [
-            "id", "text", "owner", "created_at",
-            "declared_role", "declared_user_id",
+            "id", "text", "owner", "created_at", "owner"
         ]
         read_only_fields = ["created_at"]
 
-    def validate_declared_role(self, value):
-        value = value.lower().replace(" ", "")
-        if value != "productowner" and value != "developer":
-            raise serializers.ValidationError("Comment is not submitted by product owner or developer!")
-        return role_to_code[value]
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['owner'] = UserSerializer(instance.owner).data
+        return representation
