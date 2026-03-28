@@ -1,6 +1,9 @@
-from django.http.response import HttpResponse
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
+from .models import *
 
-def index(request):
-    return HttpResponse("Hello, world.")
-
+@api_view(['GET'])
+def product(request):
+    resp = {"products": Product.objects.all()}
+    return Response(resp)
