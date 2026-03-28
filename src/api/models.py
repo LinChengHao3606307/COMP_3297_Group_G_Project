@@ -5,7 +5,7 @@ class User(models.Model):
     id = models.AutoField(primary_key=True)
     user_id = models.IntegerField()
     # Tester, Developer, Project Owner
-    role = models.CharField(max_length=20, choices=(("T", "Tester"), ("D", "Developer"), ("PO", "Project Owner")))
+    role = models.CharField(max_length=20, choices=(("T", "Tester"), ("D", "Developer"), ("PO", "Product Owner")))
 
     def __str__(self):
         return f"{self.role} #{self.user_id}"
@@ -13,7 +13,7 @@ class User(models.Model):
 
 class Product(models.Model):
     id = models.AutoField(primary_key=True)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="products")
 
     name = models.CharField(max_length=100)
     version = models.CharField(max_length=20)
@@ -24,8 +24,8 @@ class Product(models.Model):
 
 class Report(models.Model):
     id = models.AutoField(primary_key=True)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reports")
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reports")
 
     # New, Open, Assigned, Fixed, Resolved, Reopened, Rejected, Duplicate, Cannot reproduce
     status = models.TextField(choices=(
@@ -43,7 +43,7 @@ class Report(models.Model):
     steps_to_reproduce = models.TextField()
     email = models.TextField(blank=True)
 
-    timestamp = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Report #{self.id} ({self.product}, {self.owner})"
@@ -51,12 +51,12 @@ class Report(models.Model):
 
 class Comment(models.Model):
     id = models.AutoField(primary_key=True)
-    report = models.ForeignKey(Report, on_delete=models.CASCADE)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name="comments")
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
 
     text = models.TextField()
 
-    timestamp = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Comment #{self.id} ({self.report}, {self.owner})"
