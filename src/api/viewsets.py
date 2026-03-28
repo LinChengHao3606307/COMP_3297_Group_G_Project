@@ -12,12 +12,14 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 class ReportViewSet(viewsets.ModelViewSet):
     queryset = Report.objects.all()
-    serializer_class = ReportSerializer
+    serializer_class = ReportSubmissionSerializer
     permission_classes = [permissions.AllowAny]
 
     def get_serializer_class(self):
         if self.action == "comments":
             return CommentSerializer
+        elif self.action == "evaluate":
+            return ReportEvaluationSerializer
         return super().get_serializer_class()
 
     def create(self, request, *args, **kwargs):
@@ -85,6 +87,22 @@ class ReportViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         raise serializers.ValidationError("Method not allowed")
 
+    @action(detail=True, methods=["GET", "PUT"], url_path="evaluate")
+    def evaluate(self, request, pk=None):
+        report = self.get_object()
+        if request.method == "GET":
+            serializer = ReportSubmissionSerializer(report, context={"request": request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        elif request.method == "PUT":
+            serializer = ReportEvaluationSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            if report.email:
+                print(f"Email to {report.email}: Status updated")
+
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        raise serializers.ValidationError("Method not allowed")
 
 
 router = routers.DefaultRouter()

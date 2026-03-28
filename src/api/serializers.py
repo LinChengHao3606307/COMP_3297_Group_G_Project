@@ -24,7 +24,7 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ReportSerializer(serializers.ModelSerializer):
+class ReportSubmissionSerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(slug_field="name", queryset=Product.objects.all())
     owner = serializers.SlugRelatedField(slug_field="id", queryset=User.objects.filter(role='T'))
 
@@ -36,6 +36,21 @@ class ReportSerializer(serializers.ModelSerializer):
             "product", "owner",
         ]
         read_only_fields = ["created_at"]
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['owner'] = UserSerializer(instance.owner).data
+        return representation
+    
+class ReportEvaluationSerializer(serializers.ModelSerializer):
+    product = serializers.SlugRelatedField(slug_field="name", queryset=Product.objects.all())
+    owner = serializers.SlugRelatedField(slug_field="id", queryset=User.objects.filter(role='T'))
+
+    class Meta:
+        model = Report
+        fields = [
+            "status", "priority", "severity", "product", "owner"
+        ]
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
