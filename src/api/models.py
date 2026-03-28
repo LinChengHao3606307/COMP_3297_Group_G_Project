@@ -8,7 +8,7 @@ class User(models.Model):
     role = models.CharField(max_length=20, choices=(("T", "Tester"), ("D", "Developer"), ("PO", "Product Owner")))
 
     def __str__(self):
-        return f"{self.role} #{self.user_id}"
+        return f"{self.get_role_display()} #{self.user_id}"
 
 
 class Product(models.Model):
