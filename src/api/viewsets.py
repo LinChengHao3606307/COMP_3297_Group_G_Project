@@ -22,7 +22,6 @@ class ReportViewSet(viewsets.ModelViewSet):
         user_id = serializer.validated_data.pop("declared_user_id", None)
         product_id = serializer.validated_data.pop("declared_product_id", None)
 
-        print(role, user_id, product_id)
         try:
             user = User.objects.get(role=role, user_id=user_id)
             product = Product.objects.get(id=product_id)
