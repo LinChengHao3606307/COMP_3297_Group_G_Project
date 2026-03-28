@@ -1,6 +1,7 @@
 from rest_framework import routers, viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .serializers import *
 
@@ -14,6 +15,8 @@ class ReportViewSet(viewsets.ModelViewSet):
     queryset = Report.objects.all()
     serializer_class = ReportSubmissionSerializer
     permission_classes = [permissions.AllowAny]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["product__id", "product__name", "owner__id"]
 
     def get_serializer_class(self):
         if self.action == "comments":
