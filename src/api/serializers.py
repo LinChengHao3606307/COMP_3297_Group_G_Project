@@ -1,7 +1,8 @@
 from rest_framework import serializers, permissions
 from .models import *
 
-user_distinguisher = {"productowner":"PO", "developer": "D", "tester": "T"} 
+role_to_code = {"productowner": "PO", "developer": "D", "tester": "T"}
+code_to_role = {"PO": "Product Owner", "D": "Developer", "T": "Tester"}
 
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,28 +25,35 @@ class ReportSerializer(serializers.ModelSerializer):
     def validate_declared_role(self, value):
         if value.lower() != "tester":
             raise serializers.ValidationError("Report submitter is not a tester")
-        return "T"
+        return role_to_code[value.lower()]
 
 
 class UserSerializer(serializers.ModelSerializer):
+    role = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ['user_id', 'role']
+        fields = ['id', 'user_id', 'role']
+
+    def get_role(self, obj):
+        return obj.get_role_display()
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    owner = UserSerializer(read_only=True)
     declared_role = serializers.CharField(write_only=True)
     declared_user_id = serializers.IntegerField(write_only=True)
-    declared_report_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = Comment
         fields = [
-            "text","declared_role", "declared_report_id", "declared_user_id"
+            "id", "text", "owner", "created_at",
+            "declared_role", "declared_user_id",
         ]
+        read_only_fields = ["created_at"]
 
     def validate_declared_role(self, value):
         value = value.lower().replace(" ", "")
         if value != "productowner" and value != "developer":
             raise serializers.ValidationError("Comment is not submitted by product owner or developer!")
-        return user_distinguisher[value]
+        return role_to_code[value]
