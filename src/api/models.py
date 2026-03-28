@@ -26,7 +26,12 @@ class Report(models.Model):
         ("New", "New"), ("Open", "Open"), ("Assigned", "Assigned"), ("Fixed", "Fixed"), ("Resolved", "Resolved"),
         ("Reopened", "Reopened"), ("Rejected", "Rejected"), ("Duplicate", "Duplicate"), ("Cannot reproduce", "Cannot reproduce"),
     ))
-    priority = models.CharField(max_length=20)
+    priority = models.TextField(choices=(
+        ("Critical", "Critical"), ("High", "High"), ("Medium", "Medium"), ("Low", "Low")
+    ))
+    severity = models.TextField(choices=(
+        ("Critical", "Critical"), ("Major", "Major"), ("Minor", "Minor"), ("Low", "Low")
+    ))
     title = models.TextField()
     description = models.TextField()
     steps_to_reproduce = models.TextField()
