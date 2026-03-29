@@ -38,3 +38,10 @@
 - Wrote the backlog items BT-UC2-1, BT-UC2-2, BT-UC2-3, BT-UC2-4, BT-UC2-5, BT-UC2-6, BT-UC2-7, BT-UC2-8, BT-UC2-9, BT-UC2-10, BT-UC2-11
 ### Source Code
 - Did not participate yet
+
+## Yam Yat Yin
+### Use Cases
+- Added and refined features in various functions
+### Source Code
+- Tested different creating functions and general use cases
+- Bug fixes and added minor logic constrains to enforce allowed transitions
