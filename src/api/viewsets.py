@@ -10,16 +10,25 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
+    @action(detail=True, methods=['get'], url_path='reports')
+    def reports(self, request, pk=None):
+        product = self.get_object()
+        reports = product.reports.all().order_by('-id')
+
+        serializer = ReportSubmissionSerializer(reports, many=True, context={'request': request})
+        return Response(serializer.data)
 
 class ReportViewSet(viewsets.ModelViewSet):
     queryset = Report.objects.all()
-    serializer_class = ReportSubmissionSerializer
+    serializer_class = ReportDetailSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [DjangoFilterBackend]
     # filterset_fields = ["owner__id"]
 
     def get_serializer_class(self):
-        if self.action == "comments":
+        if self.action == "create":
+            return ReportSubmissionSerializer
+        elif self.action == "comments":
             return CommentSerializer
         elif self.action == "evaluate":
             return ReportEvaluationSerializer

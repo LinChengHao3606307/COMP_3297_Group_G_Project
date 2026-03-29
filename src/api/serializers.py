@@ -18,21 +18,31 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    # TODO: Modify this when adding view products methods
+    reports_url = serializers.HyperlinkedIdentityField(
+        view_name='api:product-reports',
+        read_only=True
+    )
+
     class Meta:
         model = Product
-        fields = '__all__'
+        fields = ["id", "name", "version", "owner", "reports_url"]
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['owner'] = UserSerializer(instance.owner).data
+        return representation
 
 
 class ReportSubmissionSerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(slug_field="name", queryset=Product.objects.all())
     owner = serializers.SlugRelatedField(slug_field="id", queryset=User.objects.filter(role='T'))
+    url = serializers.HyperlinkedIdentityField(view_name='api:report-detail', lookup_field='pk', read_only=True)
     class Meta:
         model = Report
         fields = [
             "id", "created_at",
             "title", "description", "steps_to_reproduce", "email",
-            "product", "owner",
+            "product", "owner", "url",
         ]
         read_only_fields = ["created_at"]
 
@@ -147,7 +157,7 @@ class ReportDetailSerializer(serializers.ModelSerializer):
     developer = UserSerializer(read_only=True)
 
     # 2. The Comment Section
-    comments = CommentSerializer(many=True, read_only=True)
+    comments = serializers.HyperlinkedIdentityField(view_name='api:report-comments', lookup_field='pk', read_only=True)
     comment_count = serializers.IntegerField(
         source='comments.count',
         read_only=True
@@ -159,10 +169,12 @@ class ReportDetailSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    url = serializers.HyperlinkedIdentityField(view_name='api:report-detail', lookup_field='pk', read_only=True)
+
     class Meta:
         model = Report
         fields = [
-            "id", "title", "description", "status", "severity", "priority",
+            "id", "url", "title", "description", "status", "severity", "priority",
             "product", "tester", "developer",
             "email", "comment_count", "comments"
         ]
