@@ -16,7 +16,7 @@ class ReportViewSet(viewsets.ModelViewSet):
     serializer_class = ReportSubmissionSerializer
     permission_classes = [permissions.AllowAny]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["product__id", "product__name", "owner__id"]
+    # filterset_fields = ["owner__id"]
 
     def get_serializer_class(self):
         if self.action == "comments":
@@ -25,6 +25,8 @@ class ReportViewSet(viewsets.ModelViewSet):
             return ReportEvaluationSerializer
         elif self.action == "claim":
             return ReportClaimSerializer
+        elif self.action == "fix":
+            return ReportFixSerializer
         elif self.action == "resolve":
             return ReportResolveSerializer
         return super().get_serializer_class()
@@ -93,7 +95,7 @@ class ReportViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
     
             report.developer = serializer.validated_data["developer"]
-            report.status = Report.Status.ASSIGNED
+            report.status = serializer.validated_data["status"]
             report.save()
 
             if report.email:
@@ -102,6 +104,25 @@ class ReportViewSet(viewsets.ModelViewSet):
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
 
+        raise serializers.ValidationError("Method not allowed")
+
+    @action(detail=True, methods=["GET", "PUT"], url_path="fix")
+    def fix(self, request, pk=None):
+        report = self.get_object()
+        if request.method == "GET":
+            serializer = ReportDetailSerializer(report, context={"request": request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        elif request.method == "PUT":
+            serializer = ReportFixSerializer(report, data=request.data, context={'report': report})
+            serializer.is_valid(raise_exception=True)
+            report.status = serializer.validated_data["status"]
+            report.save()
+
+            if report.email:
+                print(f"Email to {report.email}: Status updated to {report.status}")
+
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
         raise serializers.ValidationError("Method not allowed")
 
     @action(detail=True, methods=["GET", "PUT"], url_path="resolve")

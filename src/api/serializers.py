@@ -94,9 +94,23 @@ class ReportClaimSerializer(serializers.ModelSerializer):
         return value
 
 
-class ReportResolveSerializer(serializers.ModelSerializer):
+class ReportFixSerializer(serializers.ModelSerializer):
     EVALUATION_CHOICES = [
         (Report.Status.FIXED, "Fixed"),
+    ]
+    status = serializers.ChoiceField(choices=EVALUATION_CHOICES)
+    class Meta:
+        model = Report
+        fields = ["status"]
+
+    def validate_status(self, value):
+        if value not in [choice[0] for choice in self.EVALUATION_CHOICES]:
+            raise serializers.ValidationError({"status": f'Invalid status value. Possible statuses: {[choice[1] for choice in self.EVALUATION_CHOICES]}'})
+        return value
+
+class ReportResolveSerializer(serializers.ModelSerializer):
+    EVALUATION_CHOICES = [
+        (Report.Status.RESOLVED, "Resolved"),
     ]
     status = serializers.ChoiceField(choices=EVALUATION_CHOICES)
 
