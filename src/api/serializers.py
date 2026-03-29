@@ -49,7 +49,6 @@ class ReportEvaluationSerializer(serializers.ModelSerializer):
     ]
     status = serializers.ChoiceField(choices=EVALUATION_CHOICES)
 
-
     class Meta:
         model = Report
         fields = [
@@ -95,6 +94,22 @@ class ReportClaimSerializer(serializers.ModelSerializer):
         return value
 
 
+class ReportResolveSerializer(serializers.ModelSerializer):
+    EVALUATION_CHOICES = [
+        (Report.Status.FIXED, "Fixed"),
+    ]
+    status = serializers.ChoiceField(choices=EVALUATION_CHOICES)
+
+    class Meta:
+        model = Report
+        fields = ["status"]
+
+    def validate_status(self, value):
+        if value not in [choice[0] for choice in self.EVALUATION_CHOICES]:
+            raise serializers.ValidationError({"status": f'Invalid status value. Possible statuses: {[choice[1] for choice in self.EVALUATION_CHOICES]}'})
+        return value
+
+
 class CommentSerializer(serializers.ModelSerializer):
     owner = serializers.SlugRelatedField(slug_field="user_id", queryset=User.objects.filter(Q(role='PO') | Q(role='D')))
 
@@ -109,3 +124,31 @@ class CommentSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation['owner'] = UserSerializer(instance.owner).data
         return representation
+
+
+class ReportDetailSerializer(serializers.ModelSerializer):
+    # 1. Nested Details
+    product = serializers.CharField(source='product.name')  # Simple name
+    tester = UserSerializer(read_only=True)
+    developer = UserSerializer(read_only=True)
+
+    # 2. The Comment Section
+    comments = CommentSerializer(many=True, read_only=True)
+    comment_count = serializers.IntegerField(
+        source='comments.count',
+        read_only=True
+    )
+
+    # 3. Human-Readable Status
+    status_display = serializers.CharField(
+        source='get_status_display',
+        read_only=True
+    )
+
+    class Meta:
+        model = Report
+        fields = [
+            "id", "title", "description", "status", "status_display",
+            "product", "tester", "developer",
+            "email", "comment_count", "comments"
+        ]

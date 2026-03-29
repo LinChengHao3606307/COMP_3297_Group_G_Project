@@ -25,6 +25,8 @@ class ReportViewSet(viewsets.ModelViewSet):
             return ReportEvaluationSerializer
         elif self.action == "claim":
             return ReportClaimSerializer
+        elif self.action == "resolve":
+            return ReportResolveSerializer
         return super().get_serializer_class()
 
     def create(self, request, *args, **kwargs):
@@ -65,7 +67,7 @@ class ReportViewSet(viewsets.ModelViewSet):
     def evaluate(self, request, pk=None):
         report = self.get_object()
         if request.method == "GET":
-            serializer = ReportSubmissionSerializer(report, context={"request": request})
+            serializer = ReportDetailSerializer(report, context={"request": request})
             return Response(serializer.data, status=status.HTTP_200_OK)
         elif request.method == "PUT":
             serializer = ReportEvaluationSerializer(report, data=request.data, context={'report': report})
@@ -84,7 +86,7 @@ class ReportViewSet(viewsets.ModelViewSet):
     def claim(self, request, pk=None):
         report = self.get_object()
         if request.method == "GET":
-            serializer = ReportSubmissionSerializer(report, context={"request": request})
+            serializer = ReportDetailSerializer(report, context={"request": request})
             return Response(serializer.data, status=status.HTTP_200_OK)
         elif request.method == "PUT":
             serializer = ReportClaimSerializer(report, data=request.data, context={'report': report})
@@ -102,6 +104,22 @@ class ReportViewSet(viewsets.ModelViewSet):
 
         raise serializers.ValidationError("Method not allowed")
 
+    @action(detail=True, methods=["GET", "PUT"], url_path="resolve")
+    def resolve(self, request, pk=None):
+        report = self.get_object()
+        if request.method == "GET":
+            serializer = ReportDetailSerializer(report, context={"request": request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        elif request.method == "PUT":
+            serializer = ReportResolveSerializer(report, data=request.data, context={'report': report})
+            serializer.is_valid(raise_exception=True)
+            report.status = serializer.validated_data["status"]
+            report.save()
+            if report.email:
+                print(f"Email to {report.email}: Status updated to {report.status}")
+
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
 
 router = routers.DefaultRouter()
 router.register(r'products', ProductViewSet, basename='product')
