@@ -45,3 +45,7 @@
 ### Source Code
 - Tested different creating functions and general use cases
 - Bug fixes and added minor logic constrains to enforce allowed transitions
+
+## Liu Chun Yin
+- Initial version of use case
+- UI Storyboard with fixing developer route (except the tester route)
