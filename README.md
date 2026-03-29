@@ -2,7 +2,19 @@
 This project is aims at making BetaTrax, a software that links beta testers to developers and product owners.
 
 ## How to Use
-to be added
+### Installation
+- ```git clone https://github.com/LinChengHao3606307/COMP_3297_Group_G_Project``` in your desired directory
+- Make sure Python 3.12+ (I'm on 3.14.0) is installed
+- Make a virtual environment in your favourite way (ie, uv, venv, conda etc.) Install all python package dependencies using ```pip install -r requirements```. The library versions are the latest as of 24/3/2026. Later versions should work but just in case
+- `cd src` to get to the root folder of the code or else all `python manage.py` won't work
+- `python manage.py migrate` to create a database on your side.
+- `python manage.py createsuperuser` to create a user that can access admin page. The admin page is `http://127.0.0.1:8000/admin`
+
+### Commands to start the server
+- `python manage.py runserver` to run the server
+
+### Accessing the app
+- Follow the GUI instructions after entering ```http://127.0.0.1:8000/```, to do actions (Claim, Comment, Evaluate, Fix, Resolve) on a report, go to ```http://127.0.0.1:8000/reports/report_id``` to select specific report for the actions, where  ```report_id``` is the id of report in integer
 
 
 ## Important docs:
