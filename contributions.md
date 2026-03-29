@@ -13,8 +13,8 @@
 ### Source Code
 - Set up the base django project and REST framework. Configured the router and urls
 - Created the model definitions
-- Wrote logic for ReportSerializer and creating reports
-- Wrote logic for reading comments
+- Wrote ReportSubmissionSerializer, ReportFixSerializer, ReportResolveSerializer, ReportDetailSerializer.
+- Wrote logic for creating reports 
 
 ## Wong Sonny
 ### Vision Document
