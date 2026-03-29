@@ -9,12 +9,13 @@
 ### Partial Domain Model
 - Did not participate in making this
 ### Product Backlog
-- Wrote the backlog items BT-UC1-1, BT-UC2-1, BT-UC2-2, BT-UC3-1, BT-UC3-2, BT-UC4-1, BT-UC4-2, BT-UC5-1
+- Wrote some backlog items
 ### Source Code
 - Set up the base django project and REST framework. Configured the router and urls
 - Created the model definitions
 - Wrote ReportSubmissionSerializer, ReportFixSerializer, ReportResolveSerializer, ReportDetailSerializer.
-- Wrote logic for creating reports 
+- Wrote logic for checking comments of a report and checking reports of a product
+- Wrote logic for creating reports
 
 ## Wong Sonny
 ### Vision Document
@@ -24,6 +25,9 @@
 ### Source Code
 - Wrote logic for CommentSerializer and CommentViewSet.create()
 - Wrote logic for report evalulation
+- Wrote logic for report claim
+###
+- Wrote readme.md for the use instruction
 
 ## Lin Chenghao
 ### Vision Document

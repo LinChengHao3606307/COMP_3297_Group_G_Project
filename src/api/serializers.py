@@ -1,5 +1,6 @@
 from django.db.models import Q
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 from .models import *
 
 role_to_code = {"productowner": "PO", "developer": "D", "tester": "T"}
@@ -170,11 +171,30 @@ class ReportDetailSerializer(serializers.ModelSerializer):
     )
 
     url = serializers.HyperlinkedIdentityField(view_name='api:report-detail', lookup_field='pk', read_only=True)
+    actions = serializers.SerializerMethodField()
 
     class Meta:
         model = Report
         fields = [
             "id", "url", "title", "description", "status", "severity", "priority",
             "product", "tester", "developer",
-            "email", "comment_count", "comments"
+            "email", "comment_count", "comments",
+            "actions",
         ]
+
+    def get_actions(self, obj):
+        request = self.context.get('request')
+        links = {}
+        if obj.status == Report.Status.NEW:
+            links['evaluate'] = reverse('api:report-evaluate', kwargs={'pk': obj.pk}, request=request)
+
+        if obj.status == Report.Status.OPEN:
+            links['claim'] = reverse('api:report-claim', kwargs={'pk': obj.pk}, request=request)
+
+        if obj.status == Report.Status.ASSIGNED:
+            links['submit_fix'] = reverse('api:report-fix', kwargs={'pk': obj.pk}, request=request)
+
+        if obj.status == Report.Status.FIXED:
+            links['resolve'] = reverse('api:report-resolve', kwargs={'pk': obj.pk}, request=request)
+
+        return links

@@ -15,7 +15,7 @@ Note: This is just a Minimum Viable Product. Detailed functionality (e.g. Permis
 - `python manage.py runserver` to run the server
 
 ### Accessing the app
-- Follow the GUI instructions after entering ```http://127.0.0.1:8000/```, to do actions (Claim, Comment, Evaluate, Fix, Resolve) on a report, go to ```http://127.0.0.1:8000/reports/report_id``` to select specific report for the actions, where  ```report_id``` is the id of report in integer
+- Follow the GUI instructions after entering ```http://127.0.0.1:8000/```, to do actions (Claim, Comment, Evaluate, Fix, Resolve) on a report, click the ```url``` attribute in report list page.
 
 
 ## Important docs:
