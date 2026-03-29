@@ -76,6 +76,8 @@ class ReportViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
 
             report.status = serializer.validated_data["status"]
+            report.severity = serializer.validated_data["severity"]
+            report.priority = serializer.validated_data["priority"]
             report.save()
             if report.email:
                 print(f"Email to {report.email}: Status updated to {report.status}")

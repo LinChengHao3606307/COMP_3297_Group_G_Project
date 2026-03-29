@@ -52,7 +52,7 @@ class ReportEvaluationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
         fields = [
-            "status", "priority", "severity"
+            "status", "severity", "priority"
         ]
 
     def to_representation(self, instance):
@@ -154,7 +154,7 @@ class ReportDetailSerializer(serializers.ModelSerializer):
     )
 
     # 3. Human-Readable Status
-    status_display = serializers.CharField(
+    status = serializers.CharField(
         source='get_status_display',
         read_only=True
     )
@@ -162,7 +162,7 @@ class ReportDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
         fields = [
-            "id", "title", "description", "status", "status_display",
+            "id", "title", "description", "status", "severity", "priority",
             "product", "tester", "developer",
             "email", "comment_count", "comments"
         ]
