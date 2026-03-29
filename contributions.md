@@ -24,6 +24,9 @@
 ### Source Code
 - Wrote logic for CommentSerializer and CommentViewSet.create()
 - Wrote logic for report evalulation
+- Wrote logic for report claim
+###
+- Wrote readme.md for the use instruction
 
 ## Lin Chenghao
 ### Vision Document
