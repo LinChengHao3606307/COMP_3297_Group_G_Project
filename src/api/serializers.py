@@ -45,6 +45,12 @@ class ReportSubmissionSerializer(serializers.ModelSerializer):
 class ReportEvaluationSerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(slug_field="name", queryset=Product.objects.all())
     owner = serializers.SlugRelatedField(slug_field="id", queryset=User.objects.filter(role='T'))
+    EVALUATION_CHOICES = [
+        (Report.Status.OPEN, "Open"),
+        (Report.Status.REJECTED, "Rejected"),
+    ]
+    status = serializers.ChoiceField(choices=EVALUATION_CHOICES)
+
 
     class Meta:
         model = Report
@@ -56,6 +62,11 @@ class ReportEvaluationSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation['owner'] = UserSerializer(instance.owner).data
         return representation
+
+    def validate_status(self, value):
+        if value not in [choice[0] for choice in self.EVALUATION_CHOICES]:
+            raise serializers.ValidationError({"status": f'Invalid status value. Possible statuses: {[choice[1] for choice in self.EVALUATION_CHOICES]}'})
+        return value
 
 
 class CommentSerializer(serializers.ModelSerializer):

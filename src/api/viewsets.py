@@ -29,24 +29,6 @@ class ReportViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        # role = serializer.validated_data.pop("declared_role", None)
-        # user_id = serializer.validated_data.pop("declared_user_id", None)
-        # product_id = serializer.validated_data.pop("declared_product_id", None)
-        #
-        # try:
-        #     user = User.objects.get(role=role, user_id=user_id)
-        #     product = Product.objects.get(id=product_id)
-        # except User.DoesNotExist:
-        #     raise serializers.ValidationError("User does not exist")
-        # except Product.DoesNotExist:
-        #     raise serializers.ValidationError("Product does not exist")
-        #
-        # report = serializer.save(
-        #     owner=user,
-        #     product=product,
-        #     status="New"
-        # )
-
         report = serializer.save(status="New")
 
         if report.email:
@@ -66,19 +48,6 @@ class ReportViewSet(viewsets.ModelViewSet):
         elif request.method == "POST":
             serializer = CommentSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
-
-            # role = serializer.validated_data.pop("declared_role", None)
-            # user_id = serializer.validated_data.pop("declared_user_id", None)
-            #
-            # try:
-            #     user = User.objects.get(role=role, user_id=user_id)
-            # except User.DoesNotExist:
-            #     raise serializers.ValidationError("User does not exist")
-            #
-            # comment = serializer.save(
-            #     owner=user,
-            #     report=report,
-            # )
 
             comment = serializer.save(report=report)
             user = comment.owner
@@ -101,10 +70,10 @@ class ReportViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             if report.email:
-                print(f"Email to {report.email}: Status updated")
+                print(f"Email to {report.email}: Status updated to {report.status}")
 
             headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+            return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
         raise serializers.ValidationError("Method not allowed")
 
 

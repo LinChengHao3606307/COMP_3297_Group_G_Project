@@ -28,10 +28,28 @@ class Report(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reports")
 
     # New, Open, Assigned, Fixed, Resolved, Reopened, Rejected, Duplicate, Cannot reproduce
-    status = models.TextField(choices=(
-        ("New", "New"), ("Open", "Open"), ("Assigned", "Assigned"), ("Fixed", "Fixed"), ("Resolved", "Resolved"),
-        ("Reopened", "Reopened"), ("Rejected", "Rejected"), ("Duplicate", "Duplicate"), ("Cannot reproduce", "Cannot reproduce"),
-    ))
+    class Status(models.TextChoices):
+        # Submission
+        NEW = "New", "New"
+
+        # Evaluation
+        OPEN = "Open", "Open"
+        REJECTED = "Rejected", "Rejected"
+
+        # Development
+        ASSIGNED = "Assigned", "Assigned"
+        FIXED = "Fixed", "Fixed"
+
+        # Resolution
+        RESOLVED = "Resolved", "Resolved"
+
+        # To be implemented
+        REOPENED = "Reopened", "Reopened"
+        DUPLICATE = "Duplicate", "Duplicate"
+        CANNOT_REPRODUCE = "Cannot Reproduce", "Cannot Reproduce"
+
+
+    status = models.TextField(choices=Status.choices, default=Status.NEW)
     priority = models.TextField(blank=True, choices=(
         ("Critical", "Critical"), ("High", "High"), ("Medium", "Medium"), ("Low", "Low")
     ))
