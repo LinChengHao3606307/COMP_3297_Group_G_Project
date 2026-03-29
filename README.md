@@ -2,7 +2,8 @@
 This project is aims at making BetaTrax, a software that links beta testers to developers and product owners.
 
 ## How to Use
-to be added
+Note: This is just a Minimum Viable Product. Detailed functionality (e.g. Permission checking, authentication) is not included.<br>
+
 
 
 ## Important docs:
