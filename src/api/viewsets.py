@@ -77,13 +77,7 @@ class ReportViewSet(viewsets.ModelViewSet):
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
         raise serializers.ValidationError("Method not allowed")
-    
-    @action(detail=True, methods=["GET", "PUT"], url_path="claim")
-    def claim(self, request, pk=None):
-        report = self.get_object()
-        if request.method == "GET":
-            serializer = ReportSubmissionSerializer(report, context={"request": request})
-            return Response(serializer.data, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=["GET", "PUT"], url_path="claim")
     def claim(self, request, pk=None):
         report = self.get_object()
