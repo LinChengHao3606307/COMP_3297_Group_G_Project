@@ -16,6 +16,8 @@
 - Wrote ReportSubmissionSerializer, ReportFixSerializer, ReportResolveSerializer, ReportDetailSerializer.
 - Wrote logic for checking comments of a report and checking reports of a product
 - Wrote logic for creating reports
+### Others
+- Refined readme use instructions
 
 ## Wong Sonny
 ### Vision Document
@@ -24,7 +26,7 @@
 - Did not participate in making this
 ### Source Code
 - Wrote logic for CommentSerializer and CommentViewSet.create()
-- Wrote logic for report evalulation
+- Wrote logic for report evaluation
 - Wrote logic for report claim
 ###
 - Wrote readme.md for the use instruction
