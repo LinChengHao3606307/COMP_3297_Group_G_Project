@@ -1,27 +1,9 @@
 # COMP 3297 Group G Project
+This project is aims at making BetaTrax, a software that links beta testers to developers and product owners.
 
-## Instructions for groupmates
-### First time stuff
-- Make sure Python 3.12+ (I'm on 3.14.0) is installed
-- Make a virtual environment using `requirements.txt`. The library versions are the latest as of 24/3/2026. Later versions should work but just in case
-- `cd src` to get to the root folder of the code or else all `python manage.py` won't work
-- `python manage.py migrate` to create a database on your side. Don't track it with git plz
-- `python manage.py createsuperuser` to create a user that can access admin page. The admin page is `http://127.0.0.1:8000/admin`
+## How to Use
+to be added
 
-### Always remember
-- Pull from remote before working
-- `cd src` before `manage.py` stuff
-- Don't push venv, cache, IDE settings file onto git repo e.g.  `.venv` `.idea` `.vscode/`. The `.gitignore` should take care of this tho
-- Don't update stuff without testing that they work
-- Don't commit everything at once. If you made very different changes on two files, commit twice with proper message
-- Make sure to commit the migration files after modifying the models and making migrations
-- Don't forget to actually push your changes
-- Feel free to ask if you are not unsure about something. Explaining is faster than debugging :D
-
-### Useful commands
-- `python manage.py runserver` to run the server
-- `python manage.py makemigrations` after modifying the models to generate the changelist for migration 
-- `python manage.py migrate` to actually write the changes to the database
 
 ## Important docs:
 - [vision doc](https://connecthkuhk-my.sharepoint.com/:w:/g/personal/u3606307_connect_hku_hk/IQD9kZZRnJiPTIxSGjKxoOG3Aex-NwIiyNTZywPfMKIx8PU?e=etTHGP)
