@@ -41,7 +41,7 @@
 
 ## Yam Yat Yin
 ### Use Cases
-- Added and refined features in various functions
+- Added and refined features in various functions (v0.2.1)
 ### Source Code
 - Tested different creating functions and general use cases
 - Bug fixes and added minor logic constrains to enforce allowed transitions
