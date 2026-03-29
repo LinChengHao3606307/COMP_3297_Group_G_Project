@@ -23,3 +23,4 @@
 - Did not participate in making this
 ### Source Code
 - Wrote logic for CommentSerializer and CommentViewSet.create()
+- Wrote logic for report evalulation
