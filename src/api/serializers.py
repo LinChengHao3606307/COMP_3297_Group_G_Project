@@ -27,7 +27,6 @@ class ProductSerializer(serializers.ModelSerializer):
 class ReportSubmissionSerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(slug_field="name", queryset=Product.objects.all())
     owner = serializers.SlugRelatedField(slug_field="id", queryset=User.objects.filter(role='T'))
-
     class Meta:
         model = Report
         fields = [
@@ -41,10 +40,9 @@ class ReportSubmissionSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation['owner'] = UserSerializer(instance.owner).data
         return representation
-    
+
+
 class ReportEvaluationSerializer(serializers.ModelSerializer):
-    product = serializers.SlugRelatedField(slug_field="name", queryset=Product.objects.all())
-    owner = serializers.SlugRelatedField(slug_field="id", queryset=User.objects.filter(role='T'))
     EVALUATION_CHOICES = [
         (Report.Status.OPEN, "Open"),
         (Report.Status.REJECTED, "Rejected"),
@@ -55,7 +53,7 @@ class ReportEvaluationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
         fields = [
-            "status", "priority", "severity", "product", "owner"
+            "status", "priority", "severity"
         ]
 
     def to_representation(self, instance):
