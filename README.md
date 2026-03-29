@@ -2,6 +2,7 @@
 This project is aims at making BetaTrax, a software that links beta testers to developers and product owners.
 
 ## How to Use
+Note: This is just a Minimum Viable Product. Detailed functionality (e.g. Permission checking, authentication) is not included.
 ### Installation
 - ```git clone https://github.com/LinChengHao3606307/COMP_3297_Group_G_Project``` in your desired directory
 - Make sure Python 3.12+ (I'm on 3.14.0) is installed
