@@ -51,5 +51,7 @@
 - Bug fixes and added minor logic constrains to enforce allowed transitions
 
 ## Liu Chun Yin
+### Use Cases
 - Initial version of use case
+### UI Storyboard
 - UI Storyboard with fixing developer route (except the tester route)
