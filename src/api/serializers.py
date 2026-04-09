@@ -1,15 +1,13 @@
-from django.db.models import Q
 from rest_framework import serializers
-from rest_framework.reverse import reverse
 from .models import *
 
 
 status_transitions = {
-    'New': ['Open', 'Rejected', 'Duplicate'],
-    'Open': ['Assigned'],
-    'Assigned': ['Fixed', 'Cannot Reproduce'],
-    'Fixed': ['Resolved', 'Reopened'],
-    'Reopened': ['Assigned'],
+    Report.Status.NEW: [Report.Status.OPEN, Report.Status.REJECTED, Report.Status.DUPLICATE],
+    Report.Status.OPEN: [Report.Status.ASSIGNED],
+    Report.Status.ASSIGNED: [Report.Status.FIXED, Report.Status.CANNOT_REPRODUCE],
+    Report.Status.FIXED: [Report.Status.RESOLVED, Report.Status.REOPENED],
+    Report.Status.REOPENED: [Report.Status.ASSIGNED],
 }
 
 
