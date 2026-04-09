@@ -1,14 +1,20 @@
-from rest_framework import routers, viewsets, status, permissions
+from rest_framework import routers, viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .serializers import *
+from .permissions import *
 
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+
+    def get_permissions(self):
+        if self.action == "create":
+            return [permissions.IsAuthenticated(), IsProductOwner()]
+        return [permissions.AllowAny()]
 
     @action(detail=True, methods=['get'], url_path='reports')
     def reports(self, request, pk=None):
@@ -21,23 +27,24 @@ class ProductViewSet(viewsets.ModelViewSet):
 class ReportViewSet(viewsets.ModelViewSet):
     queryset = Report.objects.all()
     serializer_class = ReportDetailSerializer
-    permission_classes = [permissions.AllowAny]
-    filter_backends = [DjangoFilterBackend]
-    # filterset_fields = ["owner__id"]
+
+    def get_permissions(self):
+        if self.action in ["evaluate", "resolve"]:
+            return [permissions.IsAuthenticated(), IsProductOwner()]
+        elif self.action in ["claim", "fix"]:
+            return [permissions.IsAuthenticated(), IsDeveloper()]
+        return [permissions.AllowAny()]
 
     def get_serializer_class(self):
         if self.action == "create":
             return ReportSubmissionSerializer
+        elif self.action == "update":
+            return ReportUpdateSerializer
+        elif self.action == "retrieve":
+            return ReportDetailSerializer
+
         elif self.action == "comments":
             return CommentSerializer
-        elif self.action == "evaluate":
-            return ReportEvaluationSerializer
-        elif self.action == "claim":
-            return ReportClaimSerializer
-        elif self.action == "fix":
-            return ReportFixSerializer
-        elif self.action == "resolve":
-            return ReportResolveSerializer
         return super().get_serializer_class()
 
     def create(self, request, *args, **kwargs):
@@ -52,6 +59,20 @@ class ReportViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+    def update(self, request, *args, **kwargs):
+        report = self.get_object()
+        serializer = self.get_serializer(report, request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        serializer_display = self.get_serializer(report)
+        return Response(serializer_display.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, *args, **kwargs):
+        report = self.get_object()
+        serializer = self.get_serializer(report)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
     @action(detail=True, methods=["GET", "POST"], url_path="comments")
     def comments(self, request, pk=None):
         report = self.get_object()
@@ -61,97 +82,19 @@ class ReportViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         elif request.method == "POST":
-            serializer = CommentSerializer(data=request.data)
+            serializer = CommentSerializer(data=request.data, context={"request": request})
             serializer.is_valid(raise_exception=True)
 
             comment = serializer.save(report=report)
-            user = comment.owner
+            user = comment.author
 
             if report.email:
-                print(f"Email to {report.email}: New comment from {user}: {comment.text}")
+                print(f"Email to {report.email}: New comment from {user}: {comment.content}")
 
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         raise serializers.ValidationError("Method not allowed")
 
-    @action(detail=True, methods=["GET", "PUT"], url_path="evaluate")
-    def evaluate(self, request, pk=None):
-        report = self.get_object()
-        if request.method == "GET":
-            serializer = ReportDetailSerializer(report, context={"request": request})
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        elif request.method == "PUT":
-            serializer = ReportEvaluationSerializer(report, data=request.data, context={'report': report})
-            serializer.is_valid(raise_exception=True)
-
-            report.status = serializer.validated_data["status"]
-            report.severity = serializer.validated_data["severity"]
-            report.priority = serializer.validated_data["priority"]
-            report.save()
-            if report.email:
-                print(f"Email to {report.email}: Status updated to {report.status}")
-
-            headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
-        raise serializers.ValidationError("Method not allowed")
-
-    @action(detail=True, methods=["GET", "PUT"], url_path="claim")
-    def claim(self, request, pk=None):
-        report = self.get_object()
-        if request.method == "GET":
-            serializer = ReportDetailSerializer(report, context={"request": request})
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        elif request.method == "PUT":
-            serializer = ReportClaimSerializer(report, data=request.data, context={'report': report})
-            serializer.is_valid(raise_exception=True)
-    
-            report.developer = serializer.validated_data["developer"]
-            report.status = serializer.validated_data["status"]
-            report.save()
-
-            if report.email:
-                print(f"Email to {report.email}: Status updated to {report.get_status_display()}")
-
-            headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
-
-        raise serializers.ValidationError("Method not allowed")
-
-    @action(detail=True, methods=["GET", "PUT"], url_path="fix")
-    def fix(self, request, pk=None):
-        report = self.get_object()
-        if request.method == "GET":
-            serializer = ReportDetailSerializer(report, context={"request": request})
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        elif request.method == "PUT":
-            serializer = ReportFixSerializer(report, data=request.data, context={'report': report})
-            serializer.is_valid(raise_exception=True)
-            report.status = serializer.validated_data["status"]
-            report.save()
-
-            if report.email:
-                print(f"Email to {report.email}: Status updated to {report.status}")
-
-            headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
-        raise serializers.ValidationError("Method not allowed")
-
-    @action(detail=True, methods=["GET", "PUT"], url_path="resolve")
-    def resolve(self, request, pk=None):
-        report = self.get_object()
-        if request.method == "GET":
-            serializer = ReportDetailSerializer(report, context={"request": request})
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        elif request.method == "PUT":
-            serializer = ReportResolveSerializer(report, data=request.data, context={'report': report})
-            serializer.is_valid(raise_exception=True)
-            report.status = serializer.validated_data["status"]
-            report.save()
-            if report.email:
-                print(f"Email to {report.email}: Status updated to {report.status}")
-
-            headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
 
 router = routers.DefaultRouter()
 router.register(r'products', ProductViewSet, basename='product')
