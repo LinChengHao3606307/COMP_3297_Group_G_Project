@@ -14,8 +14,8 @@
 - Set up the base django project and REST framework. Configured the router and urls
 - Created the model definitions
 - Wrote ReportSubmissionSerializer, ReportFixSerializer, ReportResolveSerializer, ReportDetailSerializer.
-- Wrote logic for checking comments of a report and checking reports of a product
-- Wrote logic for creating reports
+- Wrote logic for creating reports and going through its life cycle
+- Implemented authorization system
 ### Others
 - Refined readme use instructions
 
