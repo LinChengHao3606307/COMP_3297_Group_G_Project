@@ -126,6 +126,7 @@ class ReportDetailSerializer(serializers.ModelSerializer):
             # "actions",
         ]
 
+    # Legacy code. Combined to update()
     # def get_actions(self, obj):
     #     request = self.context.get('request')
     #     links = {}

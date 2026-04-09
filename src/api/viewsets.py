@@ -8,6 +8,7 @@ from .permissions import *
 
 
 class ProductViewSet(viewsets.ModelViewSet):
+    # TODO: add filter to get the product a PO owns
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
@@ -23,8 +24,10 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         serializer = ReportSubmissionSerializer(reports, many=True, context={'request': request})
         return Response(serializer.data)
+        # TODO: allow for submitting reports at /products/{product_id}/reports/ aka here
 
 class ReportViewSet(viewsets.ModelViewSet):
+    # TODO: add filter to get the reports a developer is assigned to
     queryset = Report.objects.all()
     serializer_class = ReportDetailSerializer
 
@@ -60,6 +63,10 @@ class ReportViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
+        # Excluded by project assumption: undo changes
+        # TODO: manage permissions using CanUpdateReportStatus
+        # TODO: add duplicate status linkage handling
+        # TODO (maybe): disallow changing severity and priority except for New reports; disallow changing assigned_to except for Open and Reopen reports
         report = self.get_object()
         serializer = self.get_serializer(report, request.data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -68,6 +75,7 @@ class ReportViewSet(viewsets.ModelViewSet):
         return Response(serializer_display.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, *args, **kwargs):
+        # Excluded by project assumption: reflect changes immediately
         report = self.get_object()
         serializer = self.get_serializer(report)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -75,6 +83,7 @@ class ReportViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["GET", "POST"], url_path="comments")
     def comments(self, request, pk=None):
+        # TODO (maybe): separate this to its own viewset to avoid nesting too much
         report = self.get_object()
         if request.method == "GET":
             comments = report.comments.all().order_by("created_at")
@@ -96,6 +105,7 @@ class ReportViewSet(viewsets.ModelViewSet):
         raise serializers.ValidationError("Method not allowed")
 
 
+# Excluded by project assumption: implement front-end
 router = routers.DefaultRouter()
 router.register(r'products', ProductViewSet, basename='product')
 router.register(r'reports', ReportViewSet, basename='report')

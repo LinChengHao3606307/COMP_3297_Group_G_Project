@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
+    # Excluded by project assumption: support Tester registration
     pass
 
 
@@ -36,6 +37,7 @@ class Product(models.Model):
 
 
 class Report(models.Model):
+    # TODO: add foreignkey `parent` to link duplicate reports
     id = models.AutoField(primary_key=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reports")
     assigned_to = models.ForeignKey(Developer, on_delete=models.SET_NULL, null=True, blank=True, related_name='report')

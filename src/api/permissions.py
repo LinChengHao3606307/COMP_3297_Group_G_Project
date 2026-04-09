@@ -12,6 +12,7 @@ class IsProductOwner(permissions.BasePermission):
 
 
 class CanUpdateReportStatus(permissions.BasePermission):
+    # TODO: support more statuses
     def has_object_permission(self, request, view, obj):
         new_status = request.data.get('status')
         if not new_status:
