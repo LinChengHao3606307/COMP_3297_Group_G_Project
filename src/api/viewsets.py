@@ -16,6 +16,11 @@ class ProductViewSet(viewsets.ModelViewSet):
         if self.action == "create":
             return [permissions.IsAuthenticated(), IsProductOwner()]
         return [permissions.AllowAny()]
+
+    def get_serializer_class(self):
+        if self.action == "reports":
+            return ProductInstanceReportSubmissionSerializer
+        return self.serializer_class
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -24,14 +29,22 @@ class ProductViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-    @action(detail=True, methods=['get'], url_path='reports')
+    @action(detail=True, methods=['get', 'post'], url_path='reports')
     def reports(self, request, pk=None):
         product = self.get_object()
-        reports = product.reports.all().order_by('-id')
+        if request.method == "POST":
+            serializer = ProductInstanceReportSubmissionSerializer(data=request.data, context={"request": request, "product": product})
+            serializer.is_valid(raise_exception=True)
+            report = serializer.save(product=product, status="New")
+            if report.email:
+                print(f"Email to {report.email}: Defect report {report.id} has been created.")
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-        serializer = ReportSubmissionSerializer(reports, many=True, context={'request': request})
-        return Response(serializer.data)
-        # TODO: allow for submitting reports at /products/{product_id}/reports/ aka here
+        reports = product.reports.all().order_by('-id')
+        serializer_display = ProductInstanceReportSubmissionSerializer(reports, many=True, context={'request': request})
+        return Response(serializer_display.data)
+
 
 class ReportViewSet(viewsets.ModelViewSet):
     # TODO: add filter to get the reports a developer is assigned to

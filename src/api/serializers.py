@@ -54,6 +54,24 @@ class ReportSubmissionSerializer(serializers.ModelSerializer):
         read_only_fields = ["created_at"]
 
 
+class ProductInstanceReportSubmissionSerializer(serializers.ModelSerializer):
+    product = serializers.HiddenField(default=None)
+    url = serializers.HyperlinkedIdentityField(view_name='api:report-detail', lookup_field='pk', read_only=True)
+
+    class Meta:
+        model = Report
+        fields = [
+            "id", "created_at",
+            "title", "description", "steps_to_reproduce", "email",
+            "product", "url",
+        ]
+        read_only_fields = ["created_at"]
+
+    def get_product(self, obj):
+        if self.parent.instance:
+            return self.parent.instance
+        return None
+
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
