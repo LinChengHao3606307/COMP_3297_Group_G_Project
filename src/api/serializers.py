@@ -19,6 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
     reports_url = serializers.HyperlinkedIdentityField(
         view_name='api:product-reports',
         read_only=True
@@ -32,6 +33,12 @@ class ProductSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation['owner'] = UserSerializer(instance.owner).data
         return representation
+
+    def validate_owner(self, value):
+        is_po = hasattr(value, 'productowner')
+        if not is_po:
+            raise serializers.ValidationError({"owner": f"'{value}' is not a product owner"})
+        return value.productowner
 
 
 class ReportSubmissionSerializer(serializers.ModelSerializer):
@@ -66,6 +73,7 @@ class CommentSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation['author'] = UserSerializer(instance.author).data
         return representation
+
 
 class ReportUpdateSerializer(serializers.ModelSerializer):
     class Meta:
