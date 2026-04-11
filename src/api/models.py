@@ -6,6 +6,13 @@ class User(AbstractUser):
     # Excluded by project assumption: support Tester registration
     pass
 
+class Tester(User):
+    class Meta:
+        verbose_name = "Tester"
+        verbose_name_plural = "Tester"
+
+    def __str__(self):
+        return f"Tester '{self.username}'"
 
 class Developer(User):
     class Meta:

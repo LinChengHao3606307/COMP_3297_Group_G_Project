@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import *
-
+from django.contrib.auth.password_validation import validate_password
 
 status_transitions = {
     Report.Status.NEW: [Report.Status.OPEN, Report.Status.REJECTED, Report.Status.DUPLICATE],
@@ -49,6 +49,7 @@ class ProductSerializer(serializers.ModelSerializer):
         view_name='api:products-detail',
         read_only=True
     )
+    owner = serializers.SlugRelatedField(slug_field='username', queryset=ProductOwner.objects.all())
     
     class Meta:
         model = Product
@@ -78,8 +79,8 @@ class ReportSubmissionSerializer(serializers.ModelSerializer):
         read_only_fields = ["created_at"]
 
 class ProductCreationSerializer(serializers.ModelSerializer):
-    owner = serializers.SlugRelatedField(slug_field="name", queryset=ProductOwner.objects.all())
-    url = serializers.SerializerMethodField()
+    owner = serializers.SlugRelatedField(slug_field="username", queryset=ProductOwner.objects.all())
+
     def get_url(self, obj):
         request = self.context.get('request')
         if request:
@@ -238,3 +239,43 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ["id", "name", "version", "owner", "reports", "comment_count"]
+
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    role = serializers.ChoiceField(choices=['tester', 'developer', 'product_owner'], required=True)
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password', 'role']
+
+    def create(self, validated_data):
+        role = validated_data.pop('role')
+        username = validated_data['username']
+        email = validated_data.get('email', '')
+        password = validated_data['password']
+
+        if role == 'developer':
+            user = Developer.objects.create_user(
+                username=username,
+                email=email,
+                password=password
+            )
+        elif role == 'product_owner':
+            user = ProductOwner.objects.create_user(
+                username=username,
+                email=email,
+                password=password
+            )
+        elif role == 'tester':
+            user = Tester.objects.create_user(
+                username=username,
+                email=email,
+                password=password
+            )
+        else:
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password
+            )
+        return user
