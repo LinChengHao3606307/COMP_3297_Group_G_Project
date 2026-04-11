@@ -107,19 +107,16 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
     def get_serializer_class(self):
-        # 创建用户 + 登录 都用 LoginSerializer
         if self.action in ["create", "login"]:
             return LoginSerializer
         return super().get_serializer_class()
 
     def get_permissions(self):
-        # 注册、登录 开放访问；其他需要登录
         print(self.action)
         if self.action in ['create', 'login']:
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
 
-    # 原有：用户注册接口
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -134,11 +131,9 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get', 'post'], url_path='login')
     def login(self, request):
-        # GET请求：返回提示
         if request.method == 'GET':
             return Response({"message": "please login vis POST"}, status=405)
         
-        # POST请求：原有登录逻辑
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data.get('username')
@@ -156,7 +151,6 @@ class UserViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'], url_path='logout')
     def logout(self, request):
-        # Django 官方登出方法，清除 session
         logout(request)
         return Response({"message": "logout success"}, status=status.HTTP_200_OK)
     
