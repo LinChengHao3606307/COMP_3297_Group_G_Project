@@ -67,7 +67,7 @@ class ReportSubmissionSerializer(serializers.ModelSerializer):
     def get_url(self, obj):
         request = self.context.get('request')
         if request:
-            return request.build_absolute_uri(f'/products/{obj.product_id}/report/{obj.pk}/')
+            return request.build_absolute_uri(f'/products/{obj.product.id}/report/{obj.id}/')
         return None
     class Meta:
         model = Report
@@ -81,11 +81,6 @@ class ReportSubmissionSerializer(serializers.ModelSerializer):
 class ProductCreationSerializer(serializers.ModelSerializer):
     owner = serializers.SlugRelatedField(slug_field="username", queryset=ProductOwner.objects.all())
 
-    def get_url(self, obj):
-        request = self.context.get('request')
-        if request:
-            return request.build_absolute_uri(f'/products/{obj.product_id}/report/{obj.pk}/')
-        return None
     class Meta:
         model = Product
         fields = [
@@ -96,11 +91,18 @@ class ProductCreationSerializer(serializers.ModelSerializer):
     
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    url = serializers.SerializerMethodField()
 
+    def get_url(self, obj):
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f'/products/{obj.report.product.id}/report/{obj.report.id}/comments/{obj.id}')
+        return None
+    
     class Meta:
         model = Comment
         fields = [
-            "id", "content", "author", "created_at"
+            "url", "id", "content", "author", "created_at"
         ]
         read_only_fields = ["created_at"]
 
@@ -174,13 +176,13 @@ class ReportDetailSerializer(serializers.ModelSerializer):
     def get_url(self, obj):
         request = self.context.get('request')
         if request:
-            return request.build_absolute_uri(f'/products/{obj.product_id}/report/{obj.pk}/')
+            return request.build_absolute_uri(f'/products/{obj.product.id}/report/{obj.id}/')
         return None
 
     def get_comments(self, obj):
         request = self.context.get('request')
         if request:
-            return request.build_absolute_uri(f'/products/{obj.product_id}/report/{obj.pk}/comments/')
+            return request.build_absolute_uri(f'/products/{obj.product.id}/report/{obj.id}/comments/')
         return None
 
     class Meta:
@@ -217,7 +219,7 @@ class ReportListSerializer(serializers.ModelSerializer):
     def get_url(self, obj):
         request = self.context.get('request')
         if request:
-            return request.build_absolute_uri(f'/products/{obj.product_id}/report/{obj.pk}/')
+            return request.build_absolute_uri(f'/products/{obj.product.id}/report/{obj.id}/')
         return None
     
     class Meta:
