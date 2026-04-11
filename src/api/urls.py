@@ -10,6 +10,7 @@ router.register(r'products', ProductViewSet, basename='products')
 
 rp_router = nested_routers.NestedSimpleRouter(router, r'products', lookup='products')
 rp_router.register(r'report', ReportViewSet, basename='report')
+
 cm_router = nested_routers.NestedSimpleRouter(rp_router, r'report', lookup='report')
 cm_router.register(r'comments', CommentViewSet, basename='comments')
 

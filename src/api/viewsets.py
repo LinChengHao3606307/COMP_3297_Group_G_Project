@@ -10,14 +10,11 @@ from .permissions import *
 class ProductViewSet(viewsets.ModelViewSet):
     # TODO: add filter to get the product a PO owns
     queryset = Product.objects.all()
-    serializer_class = ProductSerializer
 
     def get_serializer_class(self):
         if self.action == "create":
             return ProductCreationSerializer
-        if self.action == 'retrieve':
-            return ProductDetailSerializer
-        return super().get_serializer_class()
+        return ProductDetailSerializer
 
     def get_permissions(self):
         if self.action in ["create", "update", "partial_update"]:
@@ -52,7 +49,6 @@ class ReportViewSet(viewsets.ModelViewSet):
             return ReportUpdateSerializer
         elif self.action == "retrieve":
             return ReportDetailSerializer
-        return super().get_serializer_class()
         return super().get_serializer_class()
 
     def create(self, request, *args, **kwargs):
@@ -93,7 +89,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == "login":
-            return LoginSerializer
+            return UserLoginSerializer
         if self.action in ['create', 'register']:
             return UserRegistrationSerializer
         return super().get_serializer_class()
