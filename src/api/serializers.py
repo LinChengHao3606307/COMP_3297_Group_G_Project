@@ -18,15 +18,41 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {"password": {"write_only": True}}
 
 
+class RegistrationSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'password', 'email']
+
+    def create(self, validated_data):
+        password = validated_data.pop('password')
+        user = User.objects.create_user(password=password, **validated_data)
+        return user
+
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True, write_only=True)
+    
+    def validate(self, data):
+        from django.contrib.auth import authenticate
+        user = authenticate(username=data.get('username'), password=data.get('password'))
+        if user is None:
+            raise serializers.ValidationError('Invalid credentials')
+        data['user'] = user
+        return data
+
+
 class ProductSerializer(serializers.ModelSerializer):
-    reports_url = serializers.HyperlinkedIdentityField(
-        view_name='api:product-reports',
+    url = serializers.HyperlinkedIdentityField(
+        view_name='api:products-detail',
         read_only=True
     )
 
     class Meta:
         model = Product
-        fields = ["id", "name", "version", "owner", "reports_url"]
+        fields = ["url", "id", "name", "version", "owner"]
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -36,7 +62,12 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class ReportSubmissionSerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(slug_field="name", queryset=Product.objects.all())
-    url = serializers.HyperlinkedIdentityField(view_name='api:report-detail', lookup_field='pk', read_only=True)
+    url = serializers.SerializerMethodField()
+    def get_url(self, obj):
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f'/products/{obj.product_id}/report/{obj.pk}/')
+        return None
     class Meta:
         model = Report
         fields = [
@@ -62,9 +93,19 @@ class CommentSerializer(serializers.ModelSerializer):
             return UserSerializer(obj.author).data
         return None
 
+    def create(self, validated_data):
+        # Convert AnonymousUser to null so the DB stores anonymous comments as author=None
+        author = validated_data.get('author', None)
+        if author is not None and getattr(author, 'is_anonymous', False):
+            validated_data['author'] = None
+        return super().create(validated_data)
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation['author'] = UserSerializer(instance.author).data
+        if instance.author:
+            representation['author'] = UserSerializer(instance.author).data
+        else:
+            representation['author'] = None
         return representation
 
 class ReportUpdateSerializer(serializers.ModelSerializer):
@@ -101,8 +142,7 @@ class ReportDetailSerializer(serializers.ModelSerializer):
     product = serializers.CharField(source='product.name')  # Simple name
     assigned_to = UserSerializer(read_only=True)
 
-    # 2. The Comment Section
-    comments = serializers.HyperlinkedIdentityField(view_name='api:report-comments', lookup_field='pk', read_only=True)
+    comments = serializers.SerializerMethodField()
     comment_count = serializers.IntegerField(
         source='comments.count',
         read_only=True
@@ -114,8 +154,18 @@ class ReportDetailSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
-    url = serializers.HyperlinkedIdentityField(view_name='api:report-detail', lookup_field='pk', read_only=True)
-    # actions = serializers.SerializerMethodField()
+    url = serializers.SerializerMethodField()
+    def get_url(self, obj):
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f'/products/{obj.product_id}/report/{obj.pk}/')
+        return None
+
+    def get_comments(self, obj):
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f'/products/{obj.product_id}/report/{obj.pk}/comments/')
+        return None
 
     class Meta:
         model = Report
@@ -123,7 +173,6 @@ class ReportDetailSerializer(serializers.ModelSerializer):
             "id", "url", "title", "description", "status", "severity", "priority",
             "product", "assigned_to",
             "email", "comment_count", "comments",
-            # "actions",
         ]
 
     # Legacy code. Combined to update()
@@ -143,3 +192,28 @@ class ReportDetailSerializer(serializers.ModelSerializer):
     #         links['resolve'] = reverse('api:report-resolve', kwargs={'pk': obj.pk}, request=request)
     #
     #     return links
+
+
+class ReportListSerializer(serializers.ModelSerializer):
+
+    status = serializers.CharField(source='get_status_display', read_only=True)
+    url = serializers.SerializerMethodField()
+    def get_url(self, obj):
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f'/products/{obj.product_id}/report/{obj.pk}/')
+        return None
+    
+    class Meta:
+        model = Report
+        fields = ["id", "url", "title", "status"]
+
+
+class ProductDetailSerializer(serializers.ModelSerializer):
+    owner = UserSerializer(read_only=True)
+    reports = ReportListSerializer(many=True, read_only=True)
+    comment_count = serializers.IntegerField(source='reports.count', read_only=True)
+
+    class Meta:
+        model = Product
+        fields = ["id", "name", "version", "owner", "reports", "comment_count"]

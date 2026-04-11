@@ -92,7 +92,7 @@ class Report(models.Model):
 class Comment(models.Model):
     id = models.AutoField(primary_key=True)
     report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name="comments")
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="comments")
 
     content = models.TextField()
 

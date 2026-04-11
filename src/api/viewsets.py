@@ -12,19 +12,16 @@ class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return ProductDetailSerializer
+        return super().get_serializer_class()
+
     def get_permissions(self):
         if self.action == "create":
             return [permissions.IsAuthenticated(), IsProductOwner()]
         return [permissions.AllowAny()]
 
-    @action(detail=True, methods=['get'], url_path='reports')
-    def reports(self, request, pk=None):
-        product = self.get_object()
-        reports = product.reports.all().order_by('-id')
-
-        serializer = ReportSubmissionSerializer(reports, many=True, context={'request': request})
-        return Response(serializer.data)
-        # TODO: allow for submitting reports at /products/{product_id}/reports/ aka here
 
 class ReportViewSet(viewsets.ModelViewSet):
     # TODO: add filter to get the reports a developer is assigned to
@@ -82,7 +79,7 @@ class ReportViewSet(viewsets.ModelViewSet):
 
 
     @action(detail=True, methods=["GET", "POST"], url_path="comments")
-    def comments(self, request, pk=None):
+    def comments(self, request, pk=None, *args, **kwargs):
         # TODO (maybe): separate this to its own viewset to avoid nesting too much
         report = self.get_object()
         if request.method == "GET":
@@ -104,8 +101,62 @@ class ReportViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         raise serializers.ValidationError("Method not allowed")
 
+from django.contrib.auth import authenticate, login, logout
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
-# Excluded by project assumption: implement front-end
-router = routers.DefaultRouter()
-router.register(r'products', ProductViewSet, basename='product')
-router.register(r'reports', ReportViewSet, basename='report')
+    def get_serializer_class(self):
+        # 创建用户 + 登录 都用 LoginSerializer
+        if self.action in ["create", "login"]:
+            return LoginSerializer
+        return super().get_serializer_class()
+
+    def get_permissions(self):
+        # 注册、登录 开放访问；其他需要登录
+        print(self.action)
+        if self.action in ['create', 'login']:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+
+    # 原有：用户注册接口
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        username = serializer.validated_data.get('username')
+        password = serializer.validated_data.get('password')
+        email = serializer.validated_data.get('email', '')
+
+        user = User.objects.create_user(username=username, email=email, password=password)
+        out = UserSerializer(user)
+        headers = self.get_success_headers(out.data)
+        return Response(out.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    @action(detail=False, methods=['get', 'post'], url_path='login')
+    def login(self, request):
+        # GET请求：返回提示
+        if request.method == 'GET':
+            return Response({"message": "please login vis POST"}, status=405)
+        
+        # POST请求：原有登录逻辑
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        username = serializer.validated_data.get('username')
+        password = serializer.validated_data.get('password')
+
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return Response({
+                "message": "login success",
+                "user": UserSerializer(user).data,
+                "view products" : request.build_absolute_uri(f'/products/')
+            })
+        return Response({"error": "invalid username or password"}, status=400)
+    
+    @action(detail=False, methods=['get'], url_path='logout')
+    def logout(self, request):
+        # Django 官方登出方法，清除 session
+        logout(request)
+        return Response({"message": "logout success"}, status=status.HTTP_200_OK)
+    
