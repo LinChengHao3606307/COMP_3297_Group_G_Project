@@ -13,6 +13,10 @@ class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
 
     def get_serializer_class(self):
+        print(self.action)
+        if self.action == "create":
+            print("*"*10)
+            return ProductCreationSerializer
         if self.action == 'retrieve':
             return ProductDetailSerializer
         return super().get_serializer_class()
@@ -22,6 +26,16 @@ class ProductViewSet(viewsets.ModelViewSet):
             return [permissions.IsAuthenticated(), IsProductOwner()]
         return [permissions.AllowAny()]
 
+    @action(detail=False, methods=['get', 'post'], url_path='create')
+    def create_product(self, request):
+        return self.create(request)
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        product = serializer.save()
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 class ReportViewSet(viewsets.ModelViewSet):
     # TODO: add filter to get the reports a developer is assigned to
@@ -37,6 +51,7 @@ class ReportViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == "create":
+            print("="*10)
             return ReportSubmissionSerializer
         elif self.action == "update":
             return ReportUpdateSerializer

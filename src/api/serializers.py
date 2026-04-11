@@ -49,7 +49,7 @@ class ProductSerializer(serializers.ModelSerializer):
         view_name='api:products-detail',
         read_only=True
     )
-
+    
     class Meta:
         model = Product
         fields = ["url", "id", "name", "version", "owner"]
@@ -71,13 +71,28 @@ class ReportSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
         fields = [
-            "id", "created_at",
-            "title", "description", "steps_to_reproduce", "email",
-            "product", "url",
+            "product", "id", "created_at",
+            "title", "description", "steps_to_reproduce",  
+            "email", "url",
         ]
         read_only_fields = ["created_at"]
 
-
+class ProductCreationSerializer(serializers.ModelSerializer):
+    owner = serializers.SlugRelatedField(slug_field="name", queryset=ProductOwner.objects.all())
+    url = serializers.SerializerMethodField()
+    def get_url(self, obj):
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f'/products/{obj.product_id}/report/{obj.pk}/')
+        return None
+    class Meta:
+        model = Product
+        fields = [
+            "owner",
+            "name",
+            "version",
+        ]
+    
 class CommentSerializer(serializers.ModelSerializer):
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
@@ -211,9 +226,15 @@ class ReportListSerializer(serializers.ModelSerializer):
 
 class ProductDetailSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
-    reports = ReportListSerializer(many=True, read_only=True)
+    reports = serializers.SerializerMethodField()
     comment_count = serializers.IntegerField(source='reports.count', read_only=True)
 
+    def get_reports(self, obj):
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f'/products/{obj.id}/report/')
+        return None
+    
     class Meta:
         model = Product
         fields = ["id", "name", "version", "owner", "reports", "comment_count"]
