@@ -35,15 +35,18 @@ Note: This is just a Minimum Viable Product. Detailed functionality (e.g. Permis
 ## Domain Model
 ```mermaid
 classDiagram
+
+    User <|-- Product_Owner 
+    User <|-- Developer
     
     Product "1" -- "*" Report : belong to
-    Product "1" -- "1..*" User : handled by
-
-    
+    Product "1" -- "1" Product_Owner : responsible for
+    Product "1" -- "1..*" Developer : developed by
     
     User "1" -- "*" Report_Comment : write
 
-    User "*" -- "*" Report : handle
+    Developer "1" -- "*" Report : handle
+    Product_Owner "1" -- "*" Report : evaluate
 
     Report_Comment "*" -- "1" Report : belong to
 
@@ -65,14 +68,12 @@ classDiagram
     }
 
     class Report_Comment{
-        author
         date
         content
     }
 
     class User{
         name
-        role
     }
     
 
