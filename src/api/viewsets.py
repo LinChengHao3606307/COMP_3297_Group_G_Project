@@ -6,83 +6,6 @@ from django.contrib.auth import authenticate, login, logout
 from .serializers import *
 from .permissions import *
 
-
-class ProductViewSet(viewsets.ModelViewSet):
-    # TODO: add filter to get the product a PO owns
-    queryset = Product.objects.all()
-
-    def get_serializer_class(self):
-        if self.action == "create":
-            return ProductCreationSerializer
-        return ProductDetailSerializer
-
-    def get_permissions(self):
-        if self.action in ["create", "update", "partial_update"]:
-            return [permissions.IsAuthenticated(), IsProductOwner()]
-        return [permissions.AllowAny()]
-    
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        product = serializer.save()
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-class ReportViewSet(viewsets.ModelViewSet):
-    # TODO: add filter to get the reports a developer is assigned to
-    queryset = Report.objects.all()
-    serializer_class = ReportDetailSerializer
-
-    def get_permissions(self):
-        if self.action in ["create"]:
-            return [permissions.IsAuthenticated(), IsTester()]
-        if self.action in ["evaluate", "resolve"]:
-            return [permissions.IsAuthenticated(), IsProductOwner()]
-        elif self.action in ["claim", "fix"]:
-            return [permissions.IsAuthenticated(), IsDeveloper()]
-        return [permissions.AllowAny()]
-
-    def get_serializer_class(self):
-        if self.action == "create":
-            return ReportSubmissionSerializer
-        elif self.action == "update":
-            return ReportUpdateSerializer
-        elif self.action == "retrieve":
-            return ReportDetailSerializer
-        return super().get_serializer_class()
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        report = serializer.save(status="New")
-
-        if report.email:
-            print(f"Email to {report.email}: Defect report {report.id} has been created.")
-
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-    def update(self, request, *args, **kwargs):
-        # Excluded by project assumption: undo changes
-        # TODO: manage permissions using CanUpdateReportStatus
-        # TODO: add duplicate status linkage handling
-        # TODO (maybe): disallow changing severity and priority except for New reports; disallow changing assigned_to except for Open and Reopen reports
-        report = self.get_object()
-        serializer = self.get_serializer(report, request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        serializer_display = self.get_serializer(report)
-        return Response(serializer_display.data, status=status.HTTP_200_OK)
-
-    def retrieve(self, request, *args, **kwargs):
-        # Excluded by project assumption: reflect changes immediately
-        report = self.get_object()
-        serializer = self.get_serializer(report)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -152,6 +75,80 @@ class UserViewSet(viewsets.ModelViewSet):
         logout(request)
         return Response({"message": "logout success"})
 
+class ProductViewSet(viewsets.ModelViewSet):
+    # TODO: add filter to get the product a PO owns
+    queryset = Product.objects.all()
+    serializer_class = ProductDetailSerializer
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return ProductCreationSerializer
+        return super().get_serializer_class()
+
+    def get_permissions(self):
+        if self.action in ["create", "update", "partial_update"]:
+            return [permissions.IsAuthenticated(), IsProductOwner()]
+        return [permissions.AllowAny()]
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        product = serializer.save()
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+class ReportViewSet(viewsets.ModelViewSet):
+    # TODO: add filter to get the reports a developer is assigned to
+    queryset = Report.objects.all()
+    serializer_class = ReportDetailSerializer
+
+    def get_permissions(self):
+        if self.action in ["create"]:
+            return [permissions.IsAuthenticated(), IsTester()]
+        if self.action in ["evaluate", "resolve"]:
+            return [permissions.IsAuthenticated(), IsProductOwner()]
+        elif self.action in ["claim", "fix"]:
+            return [permissions.IsAuthenticated(), IsDeveloper()]
+        return [permissions.AllowAny()]
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return ReportSubmissionSerializer
+        elif self.action == "update":
+            return ReportUpdateSerializer
+        elif self.action == "retrieve":
+            return ReportDetailSerializer
+        return super().get_serializer_class()
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        report = serializer.save(status="New")
+
+        if report.email:
+            print(f"Email to {report.email}: Defect report {report.id} has been created.")
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        # Excluded by project assumption: undo changes
+        # TODO: manage permissions using CanUpdateReportStatus
+        # TODO: add duplicate status linkage handling
+        # TODO (maybe): disallow changing severity and priority except for New reports; disallow changing assigned_to except for Open and Reopen reports
+        report = self.get_object()
+        serializer = self.get_serializer(report, request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        serializer_display = self.get_serializer(report)
+        return Response(serializer_display.data, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, *args, **kwargs):
+        # Excluded by project assumption: reflect changes immediately
+        report = self.get_object()
+        serializer = self.get_serializer(report)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
