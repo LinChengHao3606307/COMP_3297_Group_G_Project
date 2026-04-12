@@ -124,18 +124,10 @@ class ReportUpdateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         instance = self.instance
 
-        # Only allow priority/severity update in certain states
         if instance.status == Report.Status.NEW:
             if not data.get("priority") or not data.get("severity"):
                 raise serializers.ValidationError(
                     "Priority and severity must be set when report is NEW"
-                )
-
-        # Prevent changing assigned_to unless OPEN or REOPENED
-        if "assigned_to" in data:
-            if instance.status not in [Report.Status.OPEN, Report.Status.REOPENED]:
-                raise serializers.ValidationError(
-                    "Cannot change assigned developer in current status"
                 )
 
         return data
@@ -170,6 +162,8 @@ class ReportDetailSerializer(serializers.ModelSerializer):
             "email", "comment_count", "comments",
             # "actions",
         ]
+
+    
 
     # Legacy code. Combined to update()
     # def get_actions(self, obj):
