@@ -13,9 +13,10 @@
 ### Source Code
 - Set up the base django project and REST framework. Configured the router and urls
 - Created the model definitions
-- Wrote ReportSubmissionSerializer, ReportFixSerializer, ReportResolveSerializer, ReportDetailSerializer.
+- Wrote most serializers.
 - Wrote logic for creating reports and going through its life cycle
 - Implemented authorization system
+- Implemented create product
 ### Others
 - Refined readme use instructions
 
@@ -53,6 +54,7 @@
 - Bug fixes and added minor logic constrains to enforce allowed transitions
 - Implemented validation for report lifecycle and constraints
 - Added various methods in serializers and viewsets
+- Helped debugging and testing edge cases for others' code
 
 ## Liu Chun Yin
 ### Use Cases
