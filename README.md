@@ -48,7 +48,7 @@ classDiagram
     Product "1" -- "1" Product_Owner : responsible for
     Product "1" -- "1..*" Developer : developed by
     
-    User "1" -- "*" Report_Comment : write
+    User "1" -- "*" Comment : write
 
     Developer "1" -- "*" Report : handle
     Product_Owner "1" -- "*" Report : evaluate
@@ -79,7 +79,7 @@ classDiagram
 
     class User{
         username
-        password (hashed)
+        password_hash
     }
     
 
