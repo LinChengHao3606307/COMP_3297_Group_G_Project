@@ -17,7 +17,12 @@ Note: This is just a Minimum Viable Product. Detailed functionality (e.g. Permis
 
 ### Accessing the app
 - Create Users (Testers, Developers, Product Owners) and Products on the admin page `http://127.0.0.1:8000/admin`. The credentials are the ones you created using `createsuperuser`. For Users, user_id can be any integer and is only used for displaying on the front end. Similarly, Product name and version can be any text. 
-- Follow the GUI instructions after entering `http://127.0.0.1:8000/`, to do actions (Claim, Comment, Evaluate, Fix, Resolve) on a report, click the `url` attribute in report list page to enter the details page. Then, find the corresponding action in the `actions` provided. 
+- There is a browsable API provided by REST framework. Follow the GUI instructions after entering `http://127.0.0.1:8000/`. There are links to the related endpoints for each GET request.
+- To log in or log out the browsable API, search for the login / logout buttons in the top right corner of the GUI. Browsable API implements session-based authentication so you do not need to log in every time.
+- To authenticate with direct API calls (like `curl`), use the basic authentication header `Authentication: BASIC` or in cURL, `curl -u "{username}:{password}"`. There is no memory for API calls so authentication is required in every call.
+- On the list endpoints (`/products/`, `/products/{id}/reports/`, `/reports/`, `/reports/{id}/comments/`), there is a POST form for creating content. Permission may be required for some endpoints like Product Owner for registering products.
+- On the retrieve endpoints (`/products/{id}/`, `/reports/{id}/`), there is a PUT form to update the content instances. Updating requires correct permissions and has limits on what to change. For example, only Product Owners can change a New report to Open, while only Developers can change an Open report to Assigned (to them).
+- 
 
 
 ## Important docs:
