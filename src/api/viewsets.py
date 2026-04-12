@@ -93,6 +93,39 @@ class ReportViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
         serializer_display = self.get_serializer(report)
         return Response(serializer_display.data, status=status.HTTP_200_OK)
+    
+    def update(self, request, *args, **kwargs):
+        report = self.get_object()
+        old_status = report.status
+
+        serializer = self.get_serializer(report, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        new_status = serializer.validated_data.get("status", old_status)
+        user = request.user
+
+        # Product Owner actions
+        if new_status in [Report.Status.OPEN, Report.Status.REJECTED, Report.Status.DUPLICATE]:
+            if not IsProductOwner().has_permission(request, self):
+                return Response({"error": "Only Product Owners can evaluate reports"}, status=403)
+
+        # Developer actions
+        if new_status in [Report.Status.ASSIGNED, Report.Status.FIXED]:
+            if not IsDeveloper().has_permission(request, self):
+                return Response({"error": "Only Developers can perform this action"}, status=403)
+
+        if new_status == Report.Status.RESOLVED:
+            if not IsProductOwner().has_permission(request, self):
+                return Response({"error": "Only Product Owners can resolve reports"}, status=403)
+
+        if new_status == Report.Status.ASSIGNED:
+            serializer.save(assigned_to=user.developer)
+        else:
+            self.perform_update(serializer) 
+
+        # Re-serialize
+        serializer_display = self.get_serializer(report)
+        return Response(serializer_display.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, *args, **kwargs):
         # Excluded by project assumption: reflect changes immediately

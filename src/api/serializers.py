@@ -120,6 +120,17 @@ class ReportUpdateSerializer(serializers.ModelSerializer):
         current_status = self.instance.status
         allowed_new_status = status_transitions.get(current_status, [])
         return [current_status] + allowed_new_status
+    
+    def validate(self, data):
+        instance = self.instance
+
+        if instance.status == Report.Status.NEW:
+            if not data.get("priority") or not data.get("severity"):
+                raise serializers.ValidationError(
+                    "Priority and severity must be set when report is NEW"
+                )
+
+        return data
 
 
 class ReportDetailSerializer(serializers.ModelSerializer):
@@ -151,6 +162,8 @@ class ReportDetailSerializer(serializers.ModelSerializer):
             "email", "comment_count", "comments",
             # "actions",
         ]
+
+    
 
     # Legacy code. Combined to update()
     # def get_actions(self, obj):
