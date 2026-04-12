@@ -120,7 +120,7 @@ class ReportUpdateSerializer(serializers.ModelSerializer):
         current_status = self.instance.status
         allowed_new_status = status_transitions.get(current_status, [])
         return [current_status] + allowed_new_status
-    
+
     def validate(self, data):
         instance = self.instance
 
@@ -163,7 +163,7 @@ class ReportDetailSerializer(serializers.ModelSerializer):
             # "actions",
         ]
 
-    
+
 
     # Legacy code. Combined to update()
     # def get_actions(self, obj):
@@ -182,3 +182,16 @@ class ReportDetailSerializer(serializers.ModelSerializer):
     #         links['resolve'] = reverse('api:report-resolve', kwargs={'pk': obj.pk}, request=request)
     #
     #     return links
+
+class RegisterSerializer(serializers.ModelSerializer):
+    CHOICES = (('developer', 'Developer'), ('product_owner', 'Product Owner'))
+    user_type = serializers.ChoiceField(CHOICES)
+
+    class Meta:
+        model = User
+        fields = [
+            "username", "password", "user_type"
+        ]
+
+
+

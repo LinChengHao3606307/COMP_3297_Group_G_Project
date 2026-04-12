@@ -52,10 +52,6 @@ class ReportViewSet(viewsets.ModelViewSet):
     serializer_class = ReportDetailSerializer
 
     def get_permissions(self):
-        if self.action in ["evaluate", "resolve"]:
-            return [permissions.IsAuthenticated(), IsProductOwner()]
-        elif self.action in ["claim", "fix"]:
-            return [permissions.IsAuthenticated(), IsDeveloper()]
         return [permissions.AllowAny()]
 
     def get_serializer_class(self):
@@ -93,7 +89,7 @@ class ReportViewSet(viewsets.ModelViewSet):
         self.perform_update(serializer)
         serializer_display = self.get_serializer(report)
         return Response(serializer_display.data, status=status.HTTP_200_OK)
-    
+
     def update(self, request, *args, **kwargs):
         report = self.get_object()
         old_status = report.status
@@ -121,7 +117,7 @@ class ReportViewSet(viewsets.ModelViewSet):
         if new_status == Report.Status.ASSIGNED:
             serializer.save(assigned_to=user.developer)
         else:
-            self.perform_update(serializer) 
+            self.perform_update(serializer)
 
         # Re-serialize
         serializer_display = self.get_serializer(report)
@@ -158,7 +154,40 @@ class ReportViewSet(viewsets.ModelViewSet):
         raise serializers.ValidationError("Method not allowed")
 
 
+class User(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    permission_classes = [permissions.AllowAny]
+    serializer_class = UserSerializer
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return RegisterSerializer
+        return UserSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = RegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        data = serializer.validated_data
+        user_type = data["user_type"]
+        username = data["username"]
+        password = data["password"]
+        if user_type == "developer":
+            user = Developer.objects.create_user(username=username, password=password)
+        elif user_type == "product_owner":
+            user = ProductOwner.objects.create_user(username=username, password=password)
+        else:
+            raise serializers.ValidationError(f"Invalid user type: {user_type}")
+
+        user.set_password(password)
+        user.save()
+        serializer = UserSerializer(user)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
 # Excluded by project assumption: implement front-end
 router = routers.DefaultRouter()
 router.register(r'products', ProductViewSet, basename='product')
 router.register(r'reports', ReportViewSet, basename='report')
+router.register(r'users', User, basename='users')
