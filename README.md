@@ -53,7 +53,7 @@ classDiagram
     Developer "1" -- "*" Report : handle
     Product_Owner "1" -- "*" Report : evaluate
 
-    Report_Comment "*" -- "1" Report : belong to
+    Comment "*" -- "1" Report : belong to
 
 
     class Product{
@@ -69,16 +69,17 @@ classDiagram
         title
         description
         steps_to_reproduce
-        tester_email
+        email
     }
 
-    class Report_Comment{
+    class Comment{
         date
         content
     }
 
     class User{
-        name
+        username
+        password (hashed)
     }
     
 
