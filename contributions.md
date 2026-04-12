@@ -51,6 +51,8 @@
 ### Source Code
 - Tested different creating functions and general use cases
 - Bug fixes and added minor logic constrains to enforce allowed transitions
+- Implemented validation for report lifecycle and constraints
+- Added various methods in serializers and viewsets
 
 ## Liu Chun Yin
 ### Use Cases
