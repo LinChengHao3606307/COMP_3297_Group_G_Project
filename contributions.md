@@ -57,9 +57,23 @@
 - Helped debugging and testing edge cases for others' code
 
 ## Liu Chun Yin
-### Use Cases
+### Sprint 0
+#### Use Cases
 - Initial version of use case
-### UI Storyboard
+
+### Sprint 1
+#### UI Storyboard
 - UI Storyboard with fixing developer route (except the tester route)
-### Product Backlog
+#### Product Backlog
 - Wrote and Modified some backlog items
+
+### Sprint 2
+#### Product Backlog
+- Setting up and manage Sprint Backlog
+- Fix product backlog issues
+- Add and edit product backlog items
+- Communicate with client to confirm requirement
+
+#### Partial Domain Model
+- Rewrite Partial Domain Model
+
