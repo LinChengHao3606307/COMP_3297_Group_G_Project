@@ -6,14 +6,12 @@ from .models import *
 class SubclassUserAdmin(BaseUserAdmin):
     list_display = ('username', 'get_type')
 
-    fieldsets = (
-        (None, {'fields': ('username', 'password')}),
-    )
+    fieldsets = BaseUserAdmin.fieldsets
 
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('username', 'password'),
+            'fields': ('username', 'password1', 'password2'),
         }),
     )
 

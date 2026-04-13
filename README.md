@@ -17,7 +17,12 @@ Note: This is just a Minimum Viable Product. Detailed functionality (e.g. Permis
 
 ### Accessing the app
 - Create Users (Testers, Developers, Product Owners) and Products on the admin page `http://127.0.0.1:8000/admin`. The credentials are the ones you created using `createsuperuser`. For Users, user_id can be any integer and is only used for displaying on the front end. Similarly, Product name and version can be any text. 
-- Follow the GUI instructions after entering `http://127.0.0.1:8000/`, to do actions (Claim, Comment, Evaluate, Fix, Resolve) on a report, click the `url` attribute in report list page to enter the details page. Then, find the corresponding action in the `actions` provided. 
+- There is a browsable API provided by REST framework. Follow the GUI instructions after entering `http://127.0.0.1:8000/`. There are links to the related endpoints for each GET request.
+- To log in or log out the browsable API, search for the login / logout buttons in the top right corner of the GUI. Browsable API implements session-based authentication so you do not need to log in every time.
+- To authenticate with direct API calls (like `curl`), use the basic authentication header `Authentication: BASIC` or in cURL, `curl -u "{username}:{password}"`. There is no memory for API calls so authentication is required in every call.
+- On the list endpoints (`/products/`, `/products/{id}/reports/`, `/reports/`, `/reports/{id}/comments/`), there is a POST form for creating content. Permission may be required for some endpoints like Product Owner for registering products.
+- On the retrieve endpoints (`/products/{id}/`, `/reports/{id}/`), there is a PUT form to update the content instances. Updating requires correct permissions and has limits on what to change. For example, only Product Owners can change a New report to Open, while only Developers can change an Open report to Assigned (to them).
+- 
 
 
 ## Important docs:
@@ -35,51 +40,47 @@ Note: This is just a Minimum Viable Product. Detailed functionality (e.g. Permis
 ## Domain Model
 ```mermaid
 classDiagram
+
+    User <|-- Product_Owner 
+    User <|-- Developer
     
-    Product "1" -- "*" Report : belong_to
-    Product "1" -- "1..*" Tester : test
-    Product "1" -- "1" Product_Owner : own
-    Product "1" -- "1..*" Developer : work_with
-
-    Report "1" -- "1" Tester : written_by
-    Report "*" -- "1" Product_Owner : reviewed_by
-    Report "*" -- "0..1" Developer : claimed_by
-
-    Product_Owner "1" -- "*" Report_Comment : write
+    Product "1" -- "*" Report : belong to
+    Product "1" -- "1" Product_Owner : responsible for
+    Product "1" -- "1..*" Developer : developed by
     
-    Developer "1..*" -- Product_Owner : work_under
-    Developer "*" -- "*" Report_Comment : write
+    User "1" -- "*" Comment : write
 
-    Report_Comment "*" -- "1" Report : belong_to
+    Developer "1" -- "*" Report : handle
+    Product_Owner "1" -- "*" Report : evaluate
+
+    Comment "*" -- "1" Report : belong to
+
+
     class Product{
-        CharField_50 name
-        IntegerField id
-        CharField_20 version
+        name
+        version
     }
+
     class Report{
-        IntegerField id
-        CharField_20 status
-        CharField_20 priority
-        CharField_20 severity
-        TextField assigned_to
-        TextField title
-        TextField description
-        TextField steps_to_reproduce
-        TextField tester_email
+        status
+        priority
+        severity
+        assigned_to
+        title
+        description
+        steps_to_reproduce
+        email
     }
-    class Report_Comment{
-        IntegerField id
-        DateTimeField date
-        TextField comment
+
+    class Comment{
+        date
+        content
     }
-    class Tester{
-        IntegerField id
+
+    class User{
+        username
+        password_hash
     }
-    class Product_Owner{
-        IntegerField id
-    }
-    class Developer{
-        IntegerField id
-    }
+    
 
 ```

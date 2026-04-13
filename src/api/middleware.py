@@ -1,7 +1,7 @@
 from django.http import HttpResponseRedirect
 
 
-class LoginRequiredMiddleware:
+class RegisterRedirectionMiddleware:
     """Redirect anonymous users to the login page for non-exempt paths.
 
     Exempt paths include the auth endpoints, admin and static files.
@@ -14,10 +14,10 @@ class LoginRequiredMiddleware:
         path = request.path_info or ''
 
         # Paths that do not require authentication
-        exempt_prefixes = ('/users', '/admin')
+        exempt_prefixes = ('/users', '/admin', '/api-auth/login')
 
         if not request.user.is_authenticated:
             if not any(path.startswith(prefix) for prefix in exempt_prefixes):
-                return HttpResponseRedirect(f'/users/login')
+                return HttpResponseRedirect(f'/users/register')
 
         return self.get_response(request)
