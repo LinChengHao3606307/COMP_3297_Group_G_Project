@@ -14,7 +14,7 @@ class RegisterRedirectionMiddleware:
         path = request.path_info or ''
 
         # Paths that do not require authentication
-        exempt_prefixes = ('/users', '/admin', '/api-auth/login')
+        exempt_prefixes = ('/users/register', '/admin', '/api-auth/login')
 
         if not request.user.is_authenticated:
             if not any(path.startswith(prefix) for prefix in exempt_prefixes):

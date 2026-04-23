@@ -11,8 +11,6 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
     def get_serializer_class(self):
-        if self.action == "login":
-            return UserLoginSerializer
         if self.action in ['create', 'register']:
             return UserRegistrationSerializer
         return super().get_serializer_class()
