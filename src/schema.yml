@@ -1,0 +1,1165 @@
+openapi: 3.0.3
+info:
+  title: 'BetaTrax: Defect Report management API'
+  version: 0.1.0
+  description: API documentation for the components of BetaTrax
+paths:
+  /products/:
+    get:
+      operationId: products_list
+      tags:
+      - products
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductDetail'
+          description: ''
+    post:
+      operationId: products_create
+      tags:
+      - products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProductCreation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProductCreation'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductCreation'
+          description: ''
+  /products/{id}/:
+    get:
+      operationId: products_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this product.
+        required: true
+      tags:
+      - products
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetail'
+          description: ''
+    put:
+      operationId: products_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this product.
+        required: true
+      tags:
+      - products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProductDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProductDetail'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetail'
+          description: ''
+    patch:
+      operationId: products_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this product.
+        required: true
+      tags:
+      - products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProductDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProductDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProductDetail'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetail'
+          description: ''
+    delete:
+      operationId: products_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this product.
+        required: true
+      tags:
+      - products
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /products/{products_pk}/report/:
+    get:
+      operationId: products_report_list
+      parameters:
+      - in: path
+        name: products_pk
+        schema:
+          type: string
+        required: true
+      tags:
+      - products
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReportDetail'
+          description: ''
+    post:
+      operationId: products_report_create
+      parameters:
+      - in: path
+        name: products_pk
+        schema:
+          type: string
+        required: true
+      tags:
+      - products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportSubmission'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReportSubmission'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReportSubmission'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportSubmission'
+          description: ''
+  /products/{products_pk}/report/{id}/:
+    get:
+      operationId: products_report_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this report.
+        required: true
+      - in: path
+        name: products_pk
+        schema:
+          type: string
+        required: true
+      tags:
+      - products
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportDetail'
+          description: ''
+    put:
+      operationId: products_report_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this report.
+        required: true
+      - in: path
+        name: products_pk
+        schema:
+          type: string
+        required: true
+      tags:
+      - products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReportUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReportUpdate'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportUpdate'
+          description: ''
+    patch:
+      operationId: products_report_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this report.
+        required: true
+      - in: path
+        name: products_pk
+        schema:
+          type: string
+        required: true
+      tags:
+      - products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedReportDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedReportDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedReportDetail'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportDetail'
+          description: ''
+    delete:
+      operationId: products_report_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this report.
+        required: true
+      - in: path
+        name: products_pk
+        schema:
+          type: string
+        required: true
+      tags:
+      - products
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /products/{products_pk}/report/{report_pk}/comments/:
+    get:
+      operationId: products_report_comments_list
+      parameters:
+      - in: path
+        name: products_pk
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: report_pk
+        schema:
+          type: integer
+        required: true
+      tags:
+      - products
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+          description: ''
+    post:
+      operationId: products_report_comments_create
+      parameters:
+      - in: path
+        name: products_pk
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: report_pk
+        schema:
+          type: integer
+        required: true
+      tags:
+      - products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Comment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Comment'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+          description: ''
+  /products/{products_pk}/report/{report_pk}/comments/{id}/:
+    get:
+      operationId: products_report_comments_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this comment.
+        required: true
+      - in: path
+        name: products_pk
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: report_pk
+        schema:
+          type: integer
+        required: true
+      tags:
+      - products
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+          description: ''
+    put:
+      operationId: products_report_comments_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this comment.
+        required: true
+      - in: path
+        name: products_pk
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: report_pk
+        schema:
+          type: integer
+        required: true
+      tags:
+      - products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Comment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Comment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Comment'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+          description: ''
+    patch:
+      operationId: products_report_comments_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this comment.
+        required: true
+      - in: path
+        name: products_pk
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: report_pk
+        schema:
+          type: integer
+        required: true
+      tags:
+      - products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedComment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedComment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedComment'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+          description: ''
+    delete:
+      operationId: products_report_comments_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this comment.
+        required: true
+      - in: path
+        name: products_pk
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: report_pk
+        schema:
+          type: integer
+        required: true
+      tags:
+      - products
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /users/:
+    get:
+      operationId: users_list
+      tags:
+      - users
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+          description: ''
+    post:
+      operationId: users_create
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegistration'
+          description: ''
+  /users/{id}/:
+    get:
+      operationId: users_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - users
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: users_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: users_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    delete:
+      operationId: users_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this user.
+        required: true
+      tags:
+      - users
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /users/register/:
+    get:
+      operationId: users_register_retrieve
+      tags:
+      - users
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegistration'
+          description: ''
+    post:
+      operationId: users_register_create
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegistration'
+          description: ''
+components:
+  schemas:
+    BlankEnum:
+      enum:
+      - ''
+    Comment:
+      type: object
+      properties:
+        url:
+          type: string
+          readOnly: true
+        id:
+          type: integer
+          readOnly: true
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - content
+      - created_at
+      - id
+      - url
+    PatchedComment:
+      type: object
+      properties:
+        url:
+          type: string
+          readOnly: true
+        id:
+          type: integer
+          readOnly: true
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedProductDetail:
+      type: object
+      properties:
+        url:
+          type: string
+          readOnly: true
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        version:
+          type: string
+          maxLength: 20
+        owner:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        reports:
+          type: string
+          readOnly: true
+        comment_count:
+          type: integer
+          readOnly: true
+    PatchedReportDetail:
+      type: object
+      properties:
+        url:
+          type: string
+          readOnly: true
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          readOnly: true
+        severity:
+          oneOf:
+          - $ref: '#/components/schemas/SeverityEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        priority:
+          oneOf:
+          - $ref: '#/components/schemas/PriorityEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        product:
+          type: string
+        assigned_to:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        email:
+          type: string
+        comment_count:
+          type: integer
+          readOnly: true
+        comments:
+          type: string
+          readOnly: true
+    PatchedUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        password:
+          type: string
+          writeOnly: true
+          maxLength: 128
+    PriorityEnum:
+      enum:
+      - Critical
+      - High
+      - Medium
+      - Low
+      type: string
+      description: |-
+        * `Critical` - Critical
+        * `High` - High
+        * `Medium` - Medium
+        * `Low` - Low
+    ProductCreation:
+      type: object
+      properties:
+        owner:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+        name:
+          type: string
+          maxLength: 100
+        version:
+          type: string
+          maxLength: 20
+      required:
+      - name
+      - owner
+      - version
+    ProductDetail:
+      type: object
+      properties:
+        url:
+          type: string
+          readOnly: true
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        version:
+          type: string
+          maxLength: 20
+        owner:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        reports:
+          type: string
+          readOnly: true
+        comment_count:
+          type: integer
+          readOnly: true
+      required:
+      - comment_count
+      - id
+      - name
+      - owner
+      - reports
+      - url
+      - version
+    ReportDetail:
+      type: object
+      properties:
+        url:
+          type: string
+          readOnly: true
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          readOnly: true
+        severity:
+          oneOf:
+          - $ref: '#/components/schemas/SeverityEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        priority:
+          oneOf:
+          - $ref: '#/components/schemas/PriorityEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        product:
+          type: string
+        assigned_to:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        email:
+          type: string
+        comment_count:
+          type: integer
+          readOnly: true
+        comments:
+          type: string
+          readOnly: true
+      required:
+      - assigned_to
+      - comment_count
+      - comments
+      - description
+      - id
+      - product
+      - status
+      - title
+      - url
+    ReportSubmission:
+      type: object
+      properties:
+        url:
+          type: string
+          readOnly: true
+        id:
+          type: integer
+          readOnly: true
+        product:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        title:
+          type: string
+        description:
+          type: string
+        steps_to_reproduce:
+          type: string
+        email:
+          type: string
+      required:
+      - created_at
+      - description
+      - id
+      - product
+      - steps_to_reproduce
+      - title
+      - url
+    ReportUpdate:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        priority:
+          oneOf:
+          - $ref: '#/components/schemas/PriorityEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        severity:
+          oneOf:
+          - $ref: '#/components/schemas/SeverityEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        title:
+          type: string
+          readOnly: true
+        description:
+          type: string
+          readOnly: true
+        steps_to_reproduce:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        product:
+          type: integer
+        assigned_to:
+          type: integer
+          nullable: true
+      required:
+      - created_at
+      - description
+      - email
+      - id
+      - product
+      - steps_to_reproduce
+      - title
+    RoleEnum:
+      enum:
+      - tester
+      - developer
+      - product_owner
+      type: string
+      description: |-
+        * `tester` - tester
+        * `developer` - developer
+        * `product_owner` - product_owner
+    SeverityEnum:
+      enum:
+      - Critical
+      - Major
+      - Minor
+      - Low
+      type: string
+      description: |-
+        * `Critical` - Critical
+        * `Major` - Major
+        * `Minor` - Minor
+        * `Low` - Low
+    StatusEnum:
+      enum:
+      - New
+      - Open
+      - Rejected
+      - Assigned
+      - Fixed
+      - Resolved
+      - Reopened
+      - Duplicate
+      - Cannot Reproduce
+      type: string
+      description: |-
+        * `New` - New
+        * `Open` - Open
+        * `Rejected` - Rejected
+        * `Assigned` - Assigned
+        * `Fixed` - Fixed
+        * `Resolved` - Resolved
+        * `Reopened` - Reopened
+        * `Duplicate` - Duplicate
+        * `Cannot Reproduce` - Cannot Reproduce
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        password:
+          type: string
+          writeOnly: true
+          maxLength: 128
+      required:
+      - id
+      - password
+      - username
+    UserRegistration:
+      type: object
+      properties:
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+      required:
+      - password
+      - role
+      - username
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid

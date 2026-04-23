@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django_filters',
 
     'api',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -136,5 +137,13 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
     ],
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema'
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'BetaTrax: Defect Report management API',
+    'DESCRIPTION': 'API documentation for the components of BetaTrax',
+    'VERSION': '0.1.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
