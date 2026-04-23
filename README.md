@@ -7,7 +7,7 @@ Note: This is just a Minimum Viable Product. Detailed functionality (e.g. Permis
 - git clone https://github.com/LinChengHao3606307/COMP_3297_Group_G_Project` in your desired directory
 - Make sure Python 3.12+ (I'm on 3.14.0) is installed
 - Make a virtual environment in your favourite way (ie, uv, venv, conda etc.) Install all python package dependencies using pip install -r requirements`. The library versions are the latest as of 24/3/2026. Later versions should work but just in case
-- Enter the virtual environment with `source ./.venv/Scripts/activate` or something like that
+- Enter the virtual environment with `source ./.venv/bin/activate` or something like that
 - `cd src` to get to the root folder of the code or else all `python manage.py` won't work
 - `python manage.py migrate` to create a database on your side.
 - `python manage.py createsuperuser` to create a user that can access admin page. The admin page is `http://127.0.0.1:8000/admin`
@@ -22,7 +22,6 @@ Note: This is just a Minimum Viable Product. Detailed functionality (e.g. Permis
 - To authenticate with direct API calls (like `curl`), use the basic authentication header `Authentication: BASIC` or in cURL, `curl -u "{username}:{password}"`. There is no memory for API calls so authentication is required in every call.
 - On the list endpoints (`/products/`, `/products/{id}/reports/`, `/reports/`, `/reports/{id}/comments/`), there is a POST form for creating content. Permission may be required for some endpoints like Product Owner for registering products.
 - On the retrieve endpoints (`/products/{id}/`, `/reports/{id}/`), there is a PUT form to update the content instances. Updating requires correct permissions and has limits on what to change. For example, only Product Owners can change a New report to Open, while only Developers can change an Open report to Assigned (to them).
-- 
 
 
 ## Important docs:
