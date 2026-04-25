@@ -29,6 +29,8 @@
 - Wrote logic for CommentSerializer and CommentViewSet.create()
 - Wrote logic for report evaluation
 - Wrote logic for report claim
+- Implemented duplicate report
+- Implemented reopen status
 ###
 - Wrote readme.md for the use instruction
 

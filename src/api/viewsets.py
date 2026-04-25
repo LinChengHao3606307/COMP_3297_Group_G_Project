@@ -102,7 +102,7 @@ class ReportViewSet(viewsets.ModelViewSet):
         report = serializer.save(status="New")
 
         if report.email:
-            print(f"Email to {report.email}: Defect report {report.id} has been created.")
+            print(f"Email to {report.email}: Defect report {report.title} has been created.")
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
@@ -117,7 +117,7 @@ class ReportViewSet(viewsets.ModelViewSet):
         new_status = serializer.validated_data.get("status", old_status)
         user = request.user
         # Product Owner actions
-        if new_status in [Report.Status.OPEN, Report.Status.REJECTED, Report.Status.DUPLICATE]:
+        if new_status in [Report.Status.OPEN, Report.Status.REJECTED, Report.Status.DUPLICATE, Report.Status.REOPENED]:
             if not IsProductOwner().has_permission(request, self):
                 return Response({"error": "Only Product Owners can evaluate reports"}, status=403)
 
@@ -129,9 +129,11 @@ class ReportViewSet(viewsets.ModelViewSet):
         if new_status == Report.Status.RESOLVED:
             if not IsProductOwner().has_permission(request, self):
                 return Response({"error": "Only Product Owners can resolve reports"}, status=403)
-
-        if new_status == Report.Status.ASSIGNED:
-            serializer.save(assigned_to=user.developer)
+            
+        if new_status == Report.Status.OPEN:
+            serializer.save(assigned_to=None, duplicated_to=None)
+        elif new_status == Report.Status.ASSIGNED:
+            serializer.save(assigned_to=user.developer, duplicated_to=None)
         elif new_status == Report.Status.DUPLICATE:
             duplicate_report = serializer.validated_data.get("duplicated_to")
             priority = duplicate_report.priority
@@ -147,7 +149,7 @@ class ReportViewSet(viewsets.ModelViewSet):
         # Re-serialize
         serializer_display = self.get_serializer(report)
         if report.email:
-            print(f"Email to {report.email}: Defect report {report.id} has been updated.")
+            print(f"Email to {report.email}: Defect report {report.title} has been updated.")
         return Response(serializer_display.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, *args, **kwargs):

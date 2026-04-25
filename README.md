@@ -69,6 +69,7 @@ classDiagram
         description
         steps_to_reproduce
         email
+        duplicated_to
     }
 
     class Comment{
