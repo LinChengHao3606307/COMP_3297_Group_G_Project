@@ -41,7 +41,7 @@ class Report(models.Model):
     id = models.AutoField(primary_key=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reports")
     assigned_to = models.ForeignKey(Developer, on_delete=models.SET_NULL, null=True, blank=True, related_name='report')
-
+    duplicated_to = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='duplicates')
     # New, Open, Assigned, Fixed, Resolved, Reopened, Rejected, Duplicate, Cannot reproduce
     class Status(models.TextChoices):
         # Submission
