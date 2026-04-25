@@ -82,7 +82,9 @@ class ReportViewSet(viewsets.ModelViewSet):
             return [permissions.IsAuthenticated(), IsProductOwner()]
         elif self.action in ["claim", "fix"]:
             return [permissions.IsAuthenticated(), IsDeveloper()]
-        return [permissions.IsAuthenticated(), IsProjectMember()]
+        if self.action in ["update", "partial_update"]:
+            return [permissions.IsAuthenticated(), IsProjectMember()]
+        return [permissions.IsAuthenticated()]
 
     def get_serializer_class(self):
         if self.action == "create":
