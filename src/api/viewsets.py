@@ -1,8 +1,7 @@
-from rest_framework import routers, viewsets, status, permissions
+from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login
 from .serializers import *
 from .permissions import *
 
@@ -35,7 +34,7 @@ class UserViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED
         )
     
-    @action(detail=False, methods=['get', 'post'], url_path='register')
+    @action(detail=False, methods=['post'], url_path='register')
     def register(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -62,7 +61,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ["create", "update", "partial_update"]:
             return [permissions.IsAuthenticated(), IsProductOwner()]
-        return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -83,7 +82,7 @@ class ReportViewSet(viewsets.ModelViewSet):
             return [permissions.IsAuthenticated(), IsProductOwner()]
         elif self.action in ["claim", "fix"]:
             return [permissions.IsAuthenticated(), IsDeveloper()]
-        return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
 
     def get_serializer_class(self):
         if self.action == "create":

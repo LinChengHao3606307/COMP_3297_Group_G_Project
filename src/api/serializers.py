@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from .models import *
+from user_home.models import User
 from django.contrib.auth.password_validation import validate_password
-from django.contrib.auth import authenticate
+from django_tenants.utils import schema_context, get_public_schema_name, get_tenant
 
 status_transitions = {
     Report.Status.NEW: [Report.Status.OPEN, Report.Status.REJECTED, Report.Status.DUPLICATE],
@@ -15,47 +16,33 @@ status_transitions = {
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'password']
+        fields = ['id', 'email', 'password']
         extra_kwargs = {"password": {"write_only": True}}
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    role = serializers.ChoiceField(choices=['tester', 'developer', 'product_owner'], required=True)
+    role = serializers.ChoiceField(choices=[User.Role.PRODUCT_OWNER, User.Role.DEVELOPER, User.Role.TESTER], required=True)
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'role']
+        fields = ['email', 'password', 'role']
 
     def create(self, validated_data):
+
+        request = self.context.get('request')
+        current_tenant = get_tenant(request)
+
         role = validated_data.pop('role')
-        username = validated_data['username']
         email = validated_data.get('email', '')
         password = validated_data['password']
-
-        if role == 'developer':
-            user = Developer.objects.create_user(
-                username=username,
-                email=email,
-                password=password
-            )
-        elif role == 'product_owner':
-            user = ProductOwner.objects.create_user(
-                username=username,
-                email=email,
-                password=password
-            )
-        elif role == 'tester':
-            user = Tester.objects.create_user(
-                username=username,
-                email=email,
-                password=password
-            )
-        else:
+        with schema_context(get_public_schema_name()):
             user = User.objects.create_user(
-                username=username,
-                email=email,
-                password=password
+                email=email, password=password, role=role
             )
+
+        current_tenant.add_user(user)
+        user.save()
+
         return user
 
 class ProductDetailSerializer(serializers.ModelSerializer):
@@ -81,7 +68,10 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         fields = ["url", "id", "name", "version", "owner", "reports", "comment_count"]
 
 class ProductCreationSerializer(serializers.ModelSerializer):
-    owner = serializers.SlugRelatedField(slug_field="username", queryset=ProductOwner.objects.all())
+    owner = serializers.SlugRelatedField(
+        slug_field="email",
+        queryset=User.objects.filter(role=User.Role.PRODUCT_OWNER)
+    )
 
     class Meta:
         model = Product
