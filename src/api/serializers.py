@@ -8,8 +8,6 @@ status_transitions = {
     Report.Status.ASSIGNED: [Report.Status.FIXED, Report.Status.CANNOT_REPRODUCE],
     Report.Status.FIXED: [Report.Status.RESOLVED, Report.Status.REOPENED],
     Report.Status.REOPENED: [Report.Status.ASSIGNED],
-    Report.Status.REJECTED: [],
-    Report.Status.DUPLICATE: [],
 }
 
 class UserSerializer(serializers.ModelSerializer):
@@ -137,7 +135,18 @@ class ReportUpdateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "Priority and severity must be set when report is NEW"
                 )
+        else:
+            if not data.get("priority"):
+                data["priority"] = instance.priority
+            if not data.get("severity"):
+                data["severity"] = instance.severity
+
+            if data.get("priority") != instance.priority or data.get("severity") != instance.severity:
+                raise serializers.ValidationError(
+                    "Priority and severity cannot be changed once the report is OPEN"
+                )
         return data
+    
 
 
 class ReportDetailSerializer(serializers.ModelSerializer):
