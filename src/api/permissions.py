@@ -17,13 +17,7 @@ class IsProductOwner(permissions.BasePermission):
 
 class IsProjectMember(permissions.BasePermission):
     def has_permission(self, request, view):
-        if not bool(request.user):
-            return False
-        
-        is_owner = hasattr(request.user, "productowner")
-        is_dev = hasattr(request.user, "developer")
-        
-        return is_owner or is_dev
+        return IsProductOwner().has_permission(request, view) or IsDeveloper().has_permission(request, view)
     
 
 class CanUpdateReportStatus(permissions.BasePermission):

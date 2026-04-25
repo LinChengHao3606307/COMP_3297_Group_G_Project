@@ -10,8 +10,9 @@ status_transitions = {
     Report.Status.ASSIGNED: [Report.Status.FIXED, Report.Status.CANNOT_REPRODUCE],
     Report.Status.FIXED: [Report.Status.RESOLVED, Report.Status.REOPENED],
     Report.Status.REOPENED: [Report.Status.ASSIGNED],
+    Report.Status.REJECTED: [],
+    Report.Status.DUPLICATE: [],
 }
-
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -117,6 +118,7 @@ class ReportDetailSerializer(serializers.ModelSerializer):
             "url", "id", "title", "description", "status", "severity", "priority",
             "product", "assigned_to",
             "email", "comment_count", "comments",
+            "duplicated_to",
         ]
 
 class ReportSubmissionSerializer(serializers.ModelSerializer):
@@ -164,6 +166,23 @@ class ReportUpdateSerializer(serializers.ModelSerializer):
         current_status = self.instance.status
         allowed_new_status = status_transitions.get(current_status, [])
         return [current_status] + allowed_new_status
+    
+    def validate(self, data):
+        instance = self.instance
+        if instance.status == Report.Status.NEW:
+            if data.get("status") == Report.Status.DUPLICATE:
+                duplicate_report = data.get("duplicated_to")
+                if not duplicate_report:
+                    raise serializers.ValidationError("This field is required when changing status to DUPLICATE.")
+                if duplicate_report == instance:
+                    raise serializers.ValidationError("A report cannot be marked as duplicate of itself.")
+                if duplicate_report.status == Report.Status.NEW:
+                    raise serializers.ValidationError("Cannot mark as duplicate of a report that is still NEW.")
+            elif (not data.get("priority") or not data.get("severity")) and data.get("status") == Report.Status.OPEN:
+                raise serializers.ValidationError(
+                    "Priority and severity must be set when report is NEW"
+                )
+        return data
 
 
 

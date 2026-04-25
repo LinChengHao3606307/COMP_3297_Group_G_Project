@@ -82,7 +82,7 @@ class ReportViewSet(viewsets.ModelViewSet):
             return [permissions.IsAuthenticated(), IsProductOwner()]
         elif self.action in ["claim", "fix"]:
             return [permissions.IsAuthenticated(), IsDeveloper()]
-        return [permissions.IsAuthenticated()]
+        return [permissions.IsAuthenticated(), IsProjectMember()]
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -106,18 +106,6 @@ class ReportViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
-        # Excluded by project assumption: undo changes
-        # TODO: manage permissions using CanUpdateReportStatus
-        # TODO: add duplicate status linkage handling
-        # TODO (maybe): disallow changing severity and priority except for New reports; disallow changing assigned_to except for Open and Reopen reports
-        report = self.get_object()
-        serializer = self.get_serializer(report, request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        serializer_display = self.get_serializer(report)
-        return Response(serializer_display.data, status=status.HTTP_200_OK)
-
-    def update(self, request, *args, **kwargs):
         report = self.get_object()
         old_status = report.status
 
@@ -126,7 +114,6 @@ class ReportViewSet(viewsets.ModelViewSet):
 
         new_status = serializer.validated_data.get("status", old_status)
         user = request.user
-
         # Product Owner actions
         if new_status in [Report.Status.OPEN, Report.Status.REJECTED, Report.Status.DUPLICATE]:
             if not IsProductOwner().has_permission(request, self):
@@ -143,11 +130,22 @@ class ReportViewSet(viewsets.ModelViewSet):
 
         if new_status == Report.Status.ASSIGNED:
             serializer.save(assigned_to=user.developer)
+        elif new_status == Report.Status.DUPLICATE:
+            duplicate_report = serializer.validated_data.get("duplicated_to")
+            priority = duplicate_report.priority
+            severity = duplicate_report.severity
+            if duplicate_report.assigned_to:
+                assigned_to = duplicate_report.assigned_to
+            else:
+                assigned_to = None
+            serializer.save(duplicated_to=duplicate_report, status=Report.Status.DUPLICATE, priority=priority, severity=severity, assigned_to=assigned_to)
         else:
-            self.perform_update(serializer)
+            serializer.save(duplicated_to=None)
 
         # Re-serialize
         serializer_display = self.get_serializer(report)
+        if report.email:
+            print(f"Email to {report.email}: Defect report {report.id} has been updated.")
         return Response(serializer_display.data, status=status.HTTP_200_OK)
 
     def retrieve(self, request, *args, **kwargs):
