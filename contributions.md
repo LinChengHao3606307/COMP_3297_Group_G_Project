@@ -31,6 +31,7 @@
 - Wrote logic for report claim
 - Implemented duplicate report
 - Implemented reopen status
+- Implemented sorting and filtering functions
 ###
 - Wrote readme.md for the use instruction
 

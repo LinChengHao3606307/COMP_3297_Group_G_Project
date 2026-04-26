@@ -20,7 +20,9 @@ Note: This is just a Minimum Viable Product. Detailed functionality (e.g. Permis
 - There is a browsable API provided by REST framework. Follow the GUI instructions after entering `http://127.0.0.1:8000/`. There are links to the related endpoints for each GET request.
 - To log in or log out the browsable API, search for the login / logout buttons in the top right corner of the GUI. Browsable API implements session-based authentication so you do not need to log in every time.
 - To authenticate with direct API calls (like `curl`), use the basic authentication header `Authentication: BASIC` or in cURL, `curl -u "{username}:{password}"`. There is no memory for API calls so authentication is required in every call.
-- On the list endpoints (`/products/`, `/products/{id}/reports/`, `/reports/`, `/reports/{id}/comments/`), there is a POST form for creating content. Permission may be required for some endpoints like Product Owner for registering products.
+- On the list endpoints (`/products/`, `/products/{id}/reports/`, `/reports/`, `/reports/{id}/comments/`), there is a POST form for creating content. Permission may be required for some endpoints like Product Owner for registering products. Reports can be sorted by the time last updated using GET parameter `?orderByTime=asc` or `?orderByTime=desc`
+- To filter the Products owned by product owner, it could be done by accessing (`/products/{PO_username}`)
+- To filter the Reports assigned for developer, it could be done by accessing (`/reports/{developer_username}`). The filtered report can also be sorted by the time last updated stated above.
 - On the retrieve endpoints (`/products/{id}/`, `/reports/{id}/`), there is a PUT form to update the content instances. Updating requires correct permissions and has limits on what to change. For example, only Product Owners can change a New report to Open, while only Developers can change an Open report to Assigned (to them).
 
 
@@ -70,6 +72,8 @@ classDiagram
         steps_to_reproduce
         email
         duplicated_to
+        created_at
+        updated_at
     }
 
     class Comment{
