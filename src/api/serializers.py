@@ -19,6 +19,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    url = serializers.HyperlinkedIdentityField(view_name='api:product-detail', lookup_field='pk', read_only=True)
     reports_url = serializers.HyperlinkedIdentityField(
         view_name='api:product-reports',
         read_only=True
@@ -26,7 +27,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ["id", "name", "version", "owner", "reports_url"]
+        fields = ["id", "url", "name", "version", "owner", "reports_url"]
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -46,9 +47,9 @@ class ReportSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
         fields = [
-            "id", "created_at",
+            "id", "url", 
             "title", "description", "steps_to_reproduce", "email",
-            "product", "url",
+            "product", "created_at",
         ]
         read_only_fields = ["created_at"]
 
@@ -60,9 +61,9 @@ class ProductInstanceReportSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
         fields = [
-            "id", "created_at",
+            "id", "url", 
             "title", "description", "steps_to_reproduce", "email",
-            "product", "url",
+            "product", "created_at",
         ]
         read_only_fields = ["created_at"]
 

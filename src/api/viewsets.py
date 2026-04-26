@@ -8,7 +8,6 @@ from .permissions import *
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    # TODO: add filter to get the product a PO owns
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
@@ -25,9 +24,17 @@ class ProductViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        product = serializer.save()
+        serializer.save()
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    @action(detail=False, methods=['get'], url_path=r'(?P<username>[\w-]+)')
+    def get_by_owner(self, request, username=None):
+        products = Product.objects.filter(owner__username=username)
+        if len(products):
+            serializer = self.get_serializer(products, many=True, context={'request': request})
+            return Response(serializer.data)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=True, methods=['get', 'post'], url_path='reports')
     def reports(self, request, pk=None):
@@ -37,7 +44,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             report = serializer.save(product=product, status="New")
             if report.email:
-                print(f"Email to {report.email}: Defect report {report.id} has been created.")
+                print(f"Email to {report.email}: Defect report {report.title} has been created.")
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -81,8 +88,6 @@ class ReportViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         # Excluded by project assumption: undo changes
         # TODO: manage permissions using CanUpdateReportStatus
-        # TODO: add duplicate status linkage handling
-        # TODO (maybe): disallow changing severity and priority except for New reports; disallow changing assigned_to except for Open and Reopen reports
         report = self.get_object()
         serializer = self.get_serializer(report, request.data, partial=True)
         serializer.is_valid(raise_exception=True)
