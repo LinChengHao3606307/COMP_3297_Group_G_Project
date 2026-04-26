@@ -4,7 +4,7 @@
 - Make a virtual environment using `requirements.txt`. The library versions are the latest as of 24/3/2026. Later versions should work but just in case
 - `cd src` to get to the root folder of the code or else all `python manage.py` won't work
 - `python manage.py migrate` to create a database on your side. Don't track it with git plz
-- `python manage.py createsuperuser` to create a user that can access admin page. The admin page is `http://betatrax.loaclhost:8000/admin`
+- `python manage.py createsuperuser` to create a user that can access admin page. The admin page is `http://betatrax.localhost:8000/admin`
 
 ### Always remember
 - Pull from remote before working
