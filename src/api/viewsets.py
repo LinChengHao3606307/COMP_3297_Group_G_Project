@@ -122,11 +122,7 @@ class ReportViewSet(viewsets.ModelViewSet):
             duplicate_report = serializer.validated_data.get("duplicated_to")
             priority = duplicate_report.priority
             severity = duplicate_report.severity
-            if duplicate_report.assigned_to:
-                assigned_to = duplicate_report.assigned_to
-            else:
-                assigned_to = None
-            serializer.save(duplicated_to=duplicate_report, status=Report.Status.DUPLICATE, priority=priority, severity=severity, assigned_to=assigned_to)
+            serializer.save(duplicated_to=duplicate_report, status=Report.Status.DUPLICATE, priority=priority, severity=severity, assigned_to=None)
         else:
             serializer.save(duplicated_to=None)
 
