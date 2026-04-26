@@ -59,7 +59,9 @@ class ProductViewSet(viewsets.ModelViewSet):
         return super().get_serializer_class()
 
     def get_permissions(self):
-        if self.action in ["create", "update", "partial_update"]:
+        if self.action in ["create"]:
+            return [permissions.IsAuthenticated()]
+        if self.action in ["update", "partial_update"]:
             return [permissions.IsAuthenticated(), IsProductOwner()]
         if self.action in ['get_by_owner']:
             return [permissions.IsAuthenticated(), IsProjectMember()]
