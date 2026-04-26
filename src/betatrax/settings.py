@@ -25,12 +25,12 @@ SECRET_KEY = 'django-insecure-(ydai7%wput-1lfb-#8clmlk2=#jd^!zks5_hjy1(2ah-6p%ua
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '192.168.1.1', 'testserver']
-
 
 # Application definition
+SHARED_APPS = [
+    'django_tenants',
+    'user_home',
 
-INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,11 +39,21 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'django_filters',
-
-    'api',
+    'drf_spectacular',
+    "tenant_users.permissions",
+    "tenant_users.tenants",
 ]
+TENANT_APPS = [
+    'api',
+
+    'django.contrib.contenttypes',
+    'django.contrib.auth',
+    "tenant_users.permissions",
+]
+INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
 
 MIDDLEWARE = [
+    'django_tenants.middleware.main.TenantMainMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -51,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "tenant_users.tenants.middleware.TenantAccessMiddleware",
 ]
 
 ROOT_URLCONF = 'betatrax.urls'
@@ -72,17 +83,25 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'betatrax.wsgi.application'
 
+AUTHENTICATION_BACKENDS = ("tenant_users.permissions.backend.UserBackend",)
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django_tenants.postgresql_backend',
+        'NAME': 'betatrax_db',
+        'USER': 'postgres',
+        'PASSWORD': '3297',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
+DATABASE_ROUTERS = [
+    'django_tenants.routers.TenantSyncRouter',
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -101,7 +120,7 @@ AUTH_PASSWORD_VALIDATORS = [
     #     'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     # },
 ]
-AUTH_USER_MODEL = 'api.User'
+AUTH_USER_MODEL = 'user_home.User'
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
@@ -128,11 +147,25 @@ REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
     ],
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema'
 }
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'BetaTrax: Defect Report management API',
+    'DESCRIPTION': 'API documentation for the components of BetaTrax',
+    'VERSION': '0.1.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
+
+TENANT_MODEL = "user_home.Tenant"
+
+TENANT_DOMAIN_MODEL = "user_home.Domain"
+
+TENANT_USERS_DOMAIN = "localhost"

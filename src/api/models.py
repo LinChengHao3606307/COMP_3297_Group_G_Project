@@ -1,33 +1,12 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
-
-
-class User(AbstractUser):
-    # Excluded by project assumption: support Tester registration
-    pass
-
-
-class Developer(User):
-    class Meta:
-        verbose_name = "Developer"
-        verbose_name_plural = "Developers"
-
-    def __str__(self):
-        return f"Developer '{self.username}'"
-
-
-class ProductOwner(User):
-    class Meta:
-        verbose_name = "Product Owner"
-        verbose_name_plural = "Product Owners"
-
-    def __str__(self):
-        return f"Product Owner '{self.username}'"
+from user_home.models import *
 
 
 class Product(models.Model):
     id = models.AutoField(primary_key=True)
-    owner = models.ForeignKey(ProductOwner, on_delete=models.CASCADE, related_name="product")
+    # Not using CASCADE due to limited support for proper user deletion
+    # see: https://django-tenant-users.readthedocs.io/en/latest/pages/concepts.html#handling-user-and-tenant-deletion
+    owner = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True, blank=True, related_name="product")
 
     name = models.CharField(max_length=100)
     version = models.CharField(max_length=20)
@@ -40,8 +19,9 @@ class Report(models.Model):
     # TODO: add foreignkey `parent` to link duplicate reports
     id = models.AutoField(primary_key=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reports")
-    assigned_to = models.ForeignKey(Developer, on_delete=models.SET_NULL, null=True, blank=True, related_name='report')
+    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='report')
     duplicated_to = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='duplicates')
+
     # New, Open, Assigned, Fixed, Resolved, Reopened, Rejected, Duplicate, Cannot reproduce
     class Status(models.TextChoices):
         # Submission
@@ -93,7 +73,7 @@ class Report(models.Model):
 class Comment(models.Model):
     id = models.AutoField(primary_key=True)
     report = models.ForeignKey(Report, on_delete=models.CASCADE, related_name="comments")
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="comments")
 
     content = models.TextField()
 

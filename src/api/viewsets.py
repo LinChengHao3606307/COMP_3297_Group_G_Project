@@ -1,25 +1,69 @@
-from rest_framework import routers, viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
-
+from django.contrib.auth import login
 from .serializers import *
 from .permissions import *
+from tenant_users.tenants.utils import get_current_tenant
 
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'register']:
+            return UserRegistrationSerializer
+        return super().get_serializer_class()
+
+    def get_permissions(self):
+        if self.action == 'register':
+            return [permissions.AllowAny()]
+        elif self.action == 'login':
+            return [permissions.AllowAny()]
+        else:
+            if self.action in ["create", "destroy", "update", "partial_update"]:
+                return [permissions.IsAuthenticated(), IsProductOwner()]
+            return [permissions.IsAuthenticated()]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        
+        return Response(
+            UserSerializer(user).data,
+            status=status.HTTP_201_CREATED
+        )
+    
+    @action(detail=False, methods=['post'], url_path='register')
+    def register(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+
+        login(request, user)
+
+        return Response(
+            UserSerializer(user).data,
+            status=status.HTTP_201_CREATED
+        )
+    
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-
-    def get_permissions(self):
-        if self.action == "create":
-            return [permissions.IsAuthenticated(), IsProductOwner()]
-        return [permissions.AllowAny()]
+    serializer_class = ProductDetailSerializer
 
     def get_serializer_class(self):
-        if self.action == "reports":
-            return ProductInstanceReportSubmissionSerializer
-        return self.serializer_class
+        if self.action == "create":
+            return ProductCreationSerializer
+        return super().get_serializer_class()
+
+    def get_permissions(self):
+        if self.action in ["create", "update", "partial_update"]:
+            return [permissions.IsAuthenticated(), IsProductOwner()]
+        if self.action in ['get_by_owner']:
+            return [permissions.IsAuthenticated(), IsProjectMember()]
+        return [permissions.IsAuthenticated()]
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -28,31 +72,17 @@ class ProductViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-    @action(detail=False, methods=['get'], url_path=r'(?P<username>[a-zA-Z_][\w-]*)')
-    def get_by_owner(self, request, username=None):
-        products = Product.objects.filter(owner__username=username)
+    @action(detail=False, methods=['get'], url_path=r'(?P<email_prefix>[a-zA-Z_][\w-]*)')
+    def get_by_owner(self, request, email_prefix=None):
+        email = f"{email_prefix}@{request.get_host().split(':')[0]}"
+        products = Product.objects.filter(owner__email=email)
         if len(products):
             serializer = self.get_serializer(products, many=True, context={'request': request})
             return Response(serializer.data)
-        if ProductOwner.objects.filter(username=username).exists():
+        if User.objects.filter(email=email).exists():
             return Response({'message': 'This product owner has no products.'}, status=status.HTTP_200_OK)
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-    @action(detail=True, methods=['get', 'post'], url_path='reports')
-    def reports(self, request, pk=None):
-        product = self.get_object()
-        if request.method == "POST":
-            serializer = ProductInstanceReportSubmissionSerializer(data=request.data, context={"request": request, "product": product})
-            serializer.is_valid(raise_exception=True)
-            report = serializer.save(product=product, status="New")
-            if report.email:
-                print(f"Email to {report.email}: Defect report {report.title} has been created.")
-            headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-        reports = product.reports.all().order_by('-id')
-        serializer_display = ProductInstanceReportSubmissionSerializer(reports, many=True, context={'request': request})
-        return Response(serializer_display.data)
 
 
 class ReportViewSet(viewsets.ModelViewSet):
@@ -61,7 +91,15 @@ class ReportViewSet(viewsets.ModelViewSet):
     serializer_class = ReportDetailSerializer
 
     def get_permissions(self):
-        return [permissions.AllowAny()]
+        if self.action in ["create"]:
+            return [permissions.IsAuthenticated(), IsTester()]
+        if self.action in ["evaluate", "resolve"]:
+            return [permissions.IsAuthenticated(), IsProductOwner()]
+        elif self.action in ["claim", "fix"]:
+            return [permissions.IsAuthenticated(), IsDeveloper()]
+        if self.action in ["update", "partial_update", "get_by_dev"]:
+            return [permissions.IsAuthenticated(), IsProjectMember()]
+        return [permissions.IsAuthenticated()]
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -70,9 +108,6 @@ class ReportViewSet(viewsets.ModelViewSet):
             return ReportUpdateSerializer
         elif self.action == "retrieve":
             return ReportDetailSerializer
-
-        elif self.action == "comments":
-            return CommentSerializer
         return super().get_serializer_class()
 
     def create(self, request, *args, **kwargs):
@@ -137,9 +172,10 @@ class ReportViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(reports, many=True, context={'request': request})
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'], url_path=r'(?P<username>[a-zA-Z_][\w-]*)')
-    def get_by_dev(self, request, username=None):
-        reports = Report.objects.filter(assigned_to__isnull=False, assigned_to__username=username)
+    @action(detail=False, methods=['get'], url_path=r'(?P<email_prefix>[a-zA-Z_][\w-]*)')
+    def get_by_dev(self, request, email_prefix=None):
+        email = f"{email_prefix}@{request.get_host().split(':')[0]}"
+        reports = Report.objects.filter(assigned_to__isnull=False, assigned_to__email=email)
         if len(reports):
             order = request.GET.get('orderByTime', 'none')
             order = order.lower()
@@ -147,69 +183,41 @@ class ReportViewSet(viewsets.ModelViewSet):
                 reports = reports.order_by('-updated_at' if order == 'desc' else 'updated_at')
             serializer = self.get_serializer(reports, many=True, context={'request': request})
             return Response(serializer.data)
-        if Developer.objects.filter(username=username).exists():
+        if User.objects.filter(email=email).exists():
             return Response({'message': 'This developer has not yet assigned any reports.'}, status=status.HTTP_200_OK)
         return Response(status=status.HTTP_404_NOT_FOUND)
 
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
 
-    @action(detail=True, methods=["GET", "POST"], url_path="comments")
-    def comments(self, request, pk=None):
-        # TODO (maybe): separate this to its own viewset to avoid nesting too much
-        report = self.get_object()
-        if request.method == "GET":
-            comments = report.comments.all().order_by("created_at")
-            serializer = CommentSerializer(comments, many=True, context={"request": request})
-            return Response(serializer.data, status=status.HTTP_200_OK)
+    def get_permissions(self):
+        if self.action in ["list", "detail", "create", "destroy", "update", "partial_update"]:
+            return [permissions.IsAuthenticated(), IsProjectMember()]
+        return [permissions.IsAuthenticated()]
 
-        elif request.method == "POST":
-            serializer = CommentSerializer(data=request.data, context={"request": request})
-            serializer.is_valid(raise_exception=True)
-
-            comment = serializer.save(report=report)
-            user = comment.author
-
-            if report.email:
-                print(f"Email to {report.email}: New comment from {user}: {comment.content}")
-
-            headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-        raise serializers.ValidationError("Method not allowed")
-
-
-class User(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    permission_classes = [permissions.AllowAny]
-    serializer_class = UserSerializer
-
-    def get_serializer_class(self):
-        if self.action == "create":
-            return RegisterSerializer
-        return UserSerializer
+    def get_queryset(self):
+        report_pk = self.kwargs.get('report_pk')
+        if report_pk is not None:
+            return Comment.objects.filter(report_id=report_pk).order_by('created_at')
+        return super().get_queryset()
 
     def create(self, request, *args, **kwargs):
-        serializer = RegisterSerializer(data=request.data)
+        report_pk = self.kwargs.get('report_pk')
+        if report_pk is None:
+            return Response({"detail": "report id required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            report = Report.objects.get(pk=report_pk)
+        except Report.DoesNotExist:
+            return Response({"detail": "report not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        author = request.user if request.user and request.user.is_authenticated else None
+
+        serializer = self.get_serializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
+        comment = serializer.save(report=report, author=author)
 
-        data = serializer.validated_data
-        user_type = data["user_type"]
-        username = data["username"]
-        password = data["password"]
-        if user_type == "developer":
-            user = Developer.objects.create_user(username=username, password=password)
-        elif user_type == "product_owner":
-            user = ProductOwner.objects.create_user(username=username, password=password)
-        else:
-            raise serializers.ValidationError(f"Invalid user type: {user_type}")
-
-        user.set_password(password)
-        user.save()
-        serializer = UserSerializer(user)
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
-# Excluded by project assumption: implement front-end
-router = routers.DefaultRouter()
-router.register(r'products', ProductViewSet, basename='product')
-router.register(r'reports', ReportViewSet, basename='report')
-router.register(r'users', User, basename='users')
+        headers = self.get_success_headers(serializer.data)
+        return Response(self.get_serializer(comment).data, status=status.HTTP_201_CREATED, headers=headers)
+    

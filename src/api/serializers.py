@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from .models import *
-
+from user_home.models import User
+from django.contrib.auth.password_validation import validate_password
+from django_tenants.utils import schema_context, get_public_schema_name, get_tenant
 
 status_transitions = {
     Report.Status.NEW: [Report.Status.OPEN, Report.Status.REJECTED, Report.Status.DUPLICATE],
@@ -13,84 +15,126 @@ status_transitions = {
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'password']
+        fields = ['id', 'email', 'password']
         extra_kwargs = {"password": {"write_only": True}}
 
+class UserRegistrationSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    role = serializers.ChoiceField(choices=[User.Role.PRODUCT_OWNER, User.Role.DEVELOPER, User.Role.TESTER], required=True)
 
-class ProductSerializer(serializers.ModelSerializer):
-    owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    url = serializers.HyperlinkedIdentityField(view_name='api:product-detail', lookup_field='pk', read_only=True)
-    reports_url = serializers.HyperlinkedIdentityField(
-        view_name='api:product-reports',
-        read_only=True
+    class Meta:
+        model = User
+        fields = ['email', 'password', 'role']
+
+    def create(self, validated_data):
+
+        request = self.context.get('request')
+        current_tenant = get_tenant(request)
+
+        role = validated_data.pop('role')
+        email = validated_data.get('email', '')
+        password = validated_data['password']
+        with schema_context(get_public_schema_name()):
+            user = User.objects.create_user(
+                email=email, password=password, role=role
+            )
+
+        current_tenant.add_user(user)
+        user.save()
+
+        return user
+
+class ProductDetailSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+    owner = UserSerializer(read_only=True)
+    reports = serializers.SerializerMethodField()
+    comment_count = serializers.IntegerField(source='reports.count', read_only=True)
+
+    def get_url(self, obj):
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f'/products/{obj.id}')
+        return None
+    
+    def get_reports(self, obj):
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f'/products/{obj.id}/report/')
+        return None
+    
+    class Meta:
+        model = Product
+        fields = ["url", "id", "name", "version", "owner", "reports", "comment_count"]
+
+class ProductCreationSerializer(serializers.ModelSerializer):
+    owner = serializers.SlugRelatedField(
+        slug_field="email",
+        queryset=User.objects.filter(role=User.Role.PRODUCT_OWNER)
     )
 
     class Meta:
         model = Product
-        fields = ["id", "url", "name", "version", "owner", "reports_url"]
+        fields = [
+            "owner",
+            "name",
+            "version",
+        ]
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['owner'] = UserSerializer(instance.owner).data
-        return representation
+class ReportDetailSerializer(serializers.ModelSerializer):
+    # 1. Nested Details
+    product = serializers.CharField(source='product.name')  # Simple name
+    assigned_to = UserSerializer(read_only=True)
 
-    def validate_owner(self, value):
-        is_po = hasattr(value, 'productowner')
-        if not is_po:
-            raise serializers.ValidationError({"owner": f"'{value}' is not a product owner"})
-        return value.productowner
+    comments = serializers.SerializerMethodField()
+    comment_count = serializers.IntegerField(
+        source='comments.count',
+        read_only=True
+    )
 
+    # 3. Human-Readable Status
+    status = serializers.CharField(
+        source='get_status_display',
+        read_only=True
+    )
+
+    url = serializers.SerializerMethodField()
+    def get_url(self, obj):
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f'/products/{obj.product.id}/report/{obj.id}/')
+        return None
+
+    def get_comments(self, obj):
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f'/products/{obj.product.id}/report/{obj.id}/comments/')
+        return None
+
+    class Meta:
+        model = Report
+        fields = [
+            "url", "id", "title", "description", "status", "severity", "priority",
+            "product", "assigned_to",
+            "email", "comment_count", "comments",
+            "duplicated_to", "updated_at"
+        ]
 
 class ReportSubmissionSerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(slug_field="name", queryset=Product.objects.all())
-    url = serializers.HyperlinkedIdentityField(view_name='api:report-detail', lookup_field='pk', read_only=True)
+    url = serializers.SerializerMethodField()
+    def get_url(self, obj):
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f'/products/{obj.product.id}/report/{obj.id}/')
+        return None
     class Meta:
         model = Report
         fields = [
-            "id", "url", 
-            "title", "description", "steps_to_reproduce", "email",
-            "product", "created_at", "updated_at",
+            "url", "id", "product", "created_at",
+            "title", "description", "steps_to_reproduce",  
+            "email", "updated_at"
         ]
         read_only_fields = ["created_at", "updated_at"]
-
-
-class ProductInstanceReportSubmissionSerializer(serializers.ModelSerializer):
-    product = serializers.HiddenField(default=None)
-    url = serializers.HyperlinkedIdentityField(view_name='api:report-detail', lookup_field='pk', read_only=True)
-
-    class Meta:
-        model = Report
-        fields = [
-            "id", "url", 
-            "title", "description", "steps_to_reproduce", "email",
-            "product", "created_at",
-        ]
-        read_only_fields = ["created_at"]
-
-    def get_product(self, obj):
-        if self.parent.instance:
-            return self.parent.instance
-        return None
-
-class CommentSerializer(serializers.ModelSerializer):
-    author = serializers.HiddenField(default=serializers.CurrentUserDefault())
-
-    class Meta:
-        model = Comment
-        fields = [
-            "id", "content", "author", "created_at"
-        ]
-        read_only_fields = ["created_at"]
-
-    def get_author(self, obj):
-        if obj.author:
-            return UserSerializer(obj.author).data
-        return None
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['author'] = UserSerializer(instance.author).data
-        return representation
 
 
 class ReportUpdateSerializer(serializers.ModelSerializer):
@@ -150,37 +194,6 @@ class ReportUpdateSerializer(serializers.ModelSerializer):
     
 
 
-class ReportDetailSerializer(serializers.ModelSerializer):
-    # 1. Nested Details
-    product = serializers.CharField(source='product.name')  # Simple name
-    assigned_to = UserSerializer(read_only=True)
-
-    # 2. The Comment Section
-    comments = serializers.HyperlinkedIdentityField(view_name='api:report-comments', lookup_field='pk', read_only=True)
-    comment_count = serializers.IntegerField(
-        source='comments.count',
-        read_only=True
-    )
-
-    # 3. Human-Readable Status
-    status = serializers.CharField(
-        source='get_status_display',
-        read_only=True
-    )
-
-    url = serializers.HyperlinkedIdentityField(view_name='api:report-detail', lookup_field='pk', read_only=True)
-    duplicated_to = serializers.HyperlinkedRelatedField(view_name='api:report-detail',read_only=True,lookup_field='pk',allow_null=True)
-    # actions = serializers.SerializerMethodField()
-    class Meta:
-        model = Report
-        fields = [
-            "id", "url", "title", "description", "status", "severity", "priority",
-            "product", "assigned_to",
-            "email", "comment_count", "comments",
-            "duplicated_to", "created_at", "updated_at",
-            # "actions",
-        ]
-
 
 
     # Legacy code. Combined to update()
@@ -201,21 +214,32 @@ class ReportDetailSerializer(serializers.ModelSerializer):
     #
     #     return links
 
-class RegisterSerializer(serializers.ModelSerializer):
-    CHOICES = (('developer', 'Developer'), ('product_owner', 'Product Owner'))
-    user_type = serializers.ChoiceField(CHOICES)
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    url = serializers.SerializerMethodField()
 
+    def get_url(self, obj):
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f'/products/{obj.report.product.id}/report/{obj.report.id}/comments/{obj.id}')
+        return None
+    
     class Meta:
-        model = User
+        model = Comment
         fields = [
-            "username", "password", "user_type"
+            "url", "id", "content", "author", "created_at"
         ]
+        read_only_fields = ["created_at"]
 
-    def validate(self, data):
-        print(data)
-        if data.get('username').isdigit():
-            raise serializers.ValidationError({"username": "Username cannot be purely numeric."})
-        return data
+    def get_author(self, obj):
+        if obj.author:
+            return UserSerializer(obj.author).data
+        return None
 
-
-
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        if instance.author:
+            representation['author'] = UserSerializer(instance.author).data
+        else:
+            representation['author'] = None
+        return representation
