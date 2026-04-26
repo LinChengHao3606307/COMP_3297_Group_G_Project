@@ -28,7 +28,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-    @action(detail=False, methods=['get'], url_path=r'(?P<username>[\w-]+)')
+    @action(detail=False, methods=['get'], url_path=r'(?P<username>[a-zA-Z_][\w-]*)')
     def get_by_owner(self, request, username=None):
         products = Product.objects.filter(owner__username=username)
         if len(products):
@@ -145,7 +145,6 @@ class ReportViewSet(viewsets.ModelViewSet):
         report = self.get_object()
         serializer = self.get_serializer(report)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 
     @action(detail=True, methods=["GET", "POST"], url_path="comments")
     def comments(self, request, pk=None):

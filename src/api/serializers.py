@@ -211,5 +211,11 @@ class RegisterSerializer(serializers.ModelSerializer):
             "username", "password", "user_type"
         ]
 
+    def validate(self, data):
+        print(data)
+        if data.get('username').isdigit():
+            raise serializers.ValidationError({"username": "Username cannot be purely numeric."})
+        return data
+
 
 
