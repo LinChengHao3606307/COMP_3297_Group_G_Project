@@ -145,6 +145,14 @@ class ReportViewSet(viewsets.ModelViewSet):
         report = self.get_object()
         serializer = self.get_serializer(report)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['get'], url_path=r'(?P<username>[a-zA-Z_][\w-]*)')
+    def get_by_dev(self, request, username=None):
+        reports = Report.objects.filter(assigned_to__isnull=False, assigned_to__username=username)
+        if len(reports):
+            serializer = self.get_serializer(reports, many=True, context={'request': request})
+            return Response(serializer.data)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=True, methods=["GET", "POST"], url_path="comments")
     def comments(self, request, pk=None):
