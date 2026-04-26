@@ -40,5 +40,5 @@
 4. `python manage.py makemigrations`
 5. `python manage.py migrate_schemas --shared`
 6. `python manage.py create_public_tenant --domain_url betatrax.localhost --owner_email admin@betatrax.localhost`
-7. `python manage.py createsuperuser` to create a user like `sup@betatrax.localhost` that can access admin page. The admin page is `http://betatrax.loaclhost:8000/admin`
+7. `python manage.py createsuperuser` to create a user like `sup@betatrax.localhost` that can access admin page. The admin page is `http://betatrax.localhost:8000/admin`
 8. `python manage.py runserver` to run the server
