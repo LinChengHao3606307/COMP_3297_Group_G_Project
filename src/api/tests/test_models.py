@@ -1,24 +1,32 @@
 from django.contrib.auth.hashers import get_hasher, make_password
+from tenant_users.tenants.utils import create_public_tenant
 from django.test import TestCase
 
 from ..models import *
 
 
 class UserModelsTests(TestCase):
+    def setUp(self):
+        self.tenant = create_public_tenant(
+            domain_url='a.localhost',
+            owner_email='admin@test.com',
+        )
+
     def test_creation(self):
         # Random keyboard spam
-        username_dev = "dfkon23r80ujfadiojn"
+        email_dev = "dfkon23r80ujfadiojn@a.com"
         password_dev = "dohjn32qr90uasfmk"
-        username_po = "ihjsd89234uiohwef89y24"
+        email_po = "ihjsd89234uiohwef89y24@b.com"
         password_po = "jnsdio3qr280ijds90im23rklmsdi/."
 
-        def test(model, username, password):
+        def test(email, password, role):
             hasher = get_hasher()
-            user = model.objects.create_user(username=username, password=password)
+            user = User.objects.create_user(email=email, password=password, role=role)
 
-            self.assertEqual(user.username, username)
+            self.assertEqual(user.email, email)
+            self.assertEqual(user.role, role)
             self.assertEqual(user.password, make_password(password, hasher.decode(user.password)["salt"]))
             self.assertTrue(user.check_password(password))
 
-        test(Developer, username_dev, password_dev)
-        test(ProductOwner, username_po, password_po)
+        test(email_dev, password_dev, User.Role.DEVELOPER)
+        test(email_po, password_po, User.Role.PRODUCT_OWNER)

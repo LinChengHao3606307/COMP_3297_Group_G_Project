@@ -165,7 +165,6 @@ SPECTACULAR_SETTINGS = {
 }
 
 TENANT_MODEL = "user_home.Tenant"
-
 TENANT_DOMAIN_MODEL = "user_home.Domain"
-
 TENANT_USERS_DOMAIN = "localhost"
+PUBLIC_SCHEMA_URLCONF = "betatrax.urls"
