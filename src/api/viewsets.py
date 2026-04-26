@@ -34,6 +34,8 @@ class ProductViewSet(viewsets.ModelViewSet):
         if len(products):
             serializer = self.get_serializer(products, many=True, context={'request': request})
             return Response(serializer.data)
+        if ProductOwner.objects.filter(username=username).exists():
+            return Response({'message': 'This product owner has no products.'}, status=status.HTTP_200_OK)
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=True, methods=['get', 'post'], url_path='reports')
@@ -145,21 +147,24 @@ class ReportViewSet(viewsets.ModelViewSet):
         order = order.lower()
         if order not in ['asc', 'desc']:
             return super().list(request, *args, **kwargs)
-        reports = Report.objects.all().order_by('-created_at' if order == 'desc' else 'created_at')
+        reports = Report.objects.all().order_by('-updated_at' if order == 'desc' else 'updated_at')
         serializer = self.get_serializer(reports, many=True, context={'request': request})
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'], url_path=r'(?P<username>[a-zA-Z_][\w-]*)')
     def get_by_dev(self, request, username=None):
         reports = Report.objects.filter(assigned_to__isnull=False, assigned_to__username=username)
-        if not len(reports):
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        order = request.GET.get('orderByTime', 'none')
-        order = order.lower()
-        if order in ['asc', 'desc']:
-            reports = reports.order_by('-created_at' if order == 'desc' else 'created_at')
-        serializer = self.get_serializer(reports, many=True, context={'request': request})
-        return Response(serializer.data)
+        if len(reports):
+            order = request.GET.get('orderByTime', 'none')
+            order = order.lower()
+            if order in ['asc', 'desc']:
+                reports = reports.order_by('-updated_at' if order == 'desc' else 'updated_at')
+            serializer = self.get_serializer(reports, many=True, context={'request': request})
+            return Response(serializer.data)
+        if Developer.objects.filter(username=username).exists():
+            return Response({'message': 'This developer has not yet assigned any reports.'}, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
 
     @action(detail=True, methods=["GET", "POST"], url_path="comments")
     def comments(self, request, pk=None):
