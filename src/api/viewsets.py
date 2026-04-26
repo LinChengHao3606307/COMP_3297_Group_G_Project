@@ -139,20 +139,27 @@ class ReportViewSet(viewsets.ModelViewSet):
         if report.email:
             print(f"Email to {report.email}: Defect report {report.title} has been updated.")
         return Response(serializer_display.data, status=status.HTTP_200_OK)
-
-    def retrieve(self, request, *args, **kwargs):
-        # Excluded by project assumption: reflect changes immediately
-        report = self.get_object()
-        serializer = self.get_serializer(report)
-        return Response(serializer.data, status=status.HTTP_200_OK)
     
+    def list(self, request, *args, **kwargs):
+        order = request.GET.get('orderByTime', 'none')
+        order = order.lower()
+        if order not in ['asc', 'desc']:
+            return super().list(request, *args, **kwargs)
+        reports = Report.objects.all().order_by('-created_at' if order == 'desc' else 'created_at')
+        serializer = self.get_serializer(reports, many=True, context={'request': request})
+        return Response(serializer.data)
+
     @action(detail=False, methods=['get'], url_path=r'(?P<username>[a-zA-Z_][\w-]*)')
     def get_by_dev(self, request, username=None):
         reports = Report.objects.filter(assigned_to__isnull=False, assigned_to__username=username)
-        if len(reports):
-            serializer = self.get_serializer(reports, many=True, context={'request': request})
-            return Response(serializer.data)
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        if not len(reports):
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        order = request.GET.get('orderByTime', 'none')
+        order = order.lower()
+        if order in ['asc', 'desc']:
+            reports = reports.order_by('-created_at' if order == 'desc' else 'created_at')
+        serializer = self.get_serializer(reports, many=True, context={'request': request})
+        return Response(serializer.data)
 
     @action(detail=True, methods=["GET", "POST"], url_path="comments")
     def comments(self, request, pk=None):
