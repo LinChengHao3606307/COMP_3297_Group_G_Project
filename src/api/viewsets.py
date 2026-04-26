@@ -88,16 +88,6 @@ class ReportViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
-        # Excluded by project assumption: undo changes
-        # TODO: manage permissions using CanUpdateReportStatus
-        report = self.get_object()
-        serializer = self.get_serializer(report, request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        serializer_display = self.get_serializer(report)
-        return Response(serializer_display.data, status=status.HTTP_200_OK)
-
-    def update(self, request, *args, **kwargs):
         report = self.get_object()
         old_status = report.status
 
@@ -109,12 +99,16 @@ class ReportViewSet(viewsets.ModelViewSet):
         # Product Owner actions
         if new_status in [Report.Status.OPEN, Report.Status.REJECTED, Report.Status.DUPLICATE, Report.Status.REOPENED]:
             if not IsProductOwner().has_permission(request, self):
-                return Response({"error": "Only Product Owners can evaluate reports"}, status=403)
+                return Response({"error": "Only Product Owners can perform this action"}, status=403)
+            if not IsProductOwner().has_object_permission(request, self, report):
+                return Response({"error": "You do not have permission to modify this report"}, status=403)
 
         # Developer actions
-        if new_status in [Report.Status.ASSIGNED, Report.Status.FIXED]:
+        if new_status in [Report.Status.ASSIGNED, Report.Status.FIXED, Report.Status.CANNOT_REPRODUCE]:
             if not IsDeveloper().has_permission(request, self):
                 return Response({"error": "Only Developers can perform this action"}, status=403)
+            if not IsDeveloper().has_object_permission(request, self, report) and new_status in [Report.Status.FIXED, Report.Status.CANNOT_REPRODUCE]:
+                return Response({"error": "You do not have permission to modify this report"}, status=403)
 
         if new_status == Report.Status.RESOLVED:
             if not IsProductOwner().has_permission(request, self):

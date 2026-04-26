@@ -96,8 +96,8 @@ class CommentSerializer(serializers.ModelSerializer):
 class ReportUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
-        fields = '__all__'
-        read_only_fields = ["title", "description", "steps_to_reproduce", "email", "created_at", "updated_at"]
+        fields = ["status", "priority", "severity", "duplicated_to"]
+        read_only_fields = ["title", "description", "product", "steps_to_reproduce", "email", "created_at", "updated_at"]
 
     def __init__(self, *args, **kwargs):
         super(ReportUpdateSerializer, self).__init__(*args, **kwargs)
