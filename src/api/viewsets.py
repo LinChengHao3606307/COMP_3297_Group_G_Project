@@ -97,7 +97,7 @@ class ReportViewSet(viewsets.ModelViewSet):
         new_status = serializer.validated_data.get("status", old_status)
         user = request.user
         # Product Owner actions
-        if new_status in [Report.Status.OPEN, Report.Status.REJECTED, Report.Status.DUPLICATE, Report.Status.REOPENED]:
+        if new_status in [Report.Status.OPEN, Report.Status.REJECTED, Report.Status.DUPLICATE, Report.Status.REOPENED, Report.Status.RESOLVED]:
             if not IsProductOwner().has_permission(request, self):
                 return Response({"error": "Only Product Owners can perform this action"}, status=403)
             if not IsProductOwner().has_object_permission(request, self, report):
@@ -107,12 +107,8 @@ class ReportViewSet(viewsets.ModelViewSet):
         if new_status in [Report.Status.ASSIGNED, Report.Status.FIXED, Report.Status.CANNOT_REPRODUCE]:
             if not IsDeveloper().has_permission(request, self):
                 return Response({"error": "Only Developers can perform this action"}, status=403)
-            if not IsDeveloper().has_object_permission(request, self, report) and new_status in [Report.Status.FIXED, Report.Status.CANNOT_REPRODUCE]:
+            if not IsDeveloper().has_object_permission(request, self, report) and new_status != Report.Status.ASSIGNED:
                 return Response({"error": "You do not have permission to modify this report"}, status=403)
-
-        if new_status == Report.Status.RESOLVED:
-            if not IsProductOwner().has_permission(request, self):
-                return Response({"error": "Only Product Owners can resolve reports"}, status=403)
             
         if new_status == Report.Status.OPEN:
             serializer.save(assigned_to=None, duplicated_to=None)
