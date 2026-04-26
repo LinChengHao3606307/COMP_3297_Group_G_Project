@@ -22,6 +22,9 @@
 - `python manage.py runserver` to run the server
 - `python manage.py makemigrations` after modifying the models to generate the changelist for migration 
 - `python manage.py migrate` to actually write the changes to the database
+- `python manage.py test` to test everything
+- `coverage run --source="." manage.py test` to test with coverage check
+- `coverage html -d "..\html_coverage"` to see html report of the coverage
 
 ### steps to enable multi tenants
 1. have db setting aligned with settings.py

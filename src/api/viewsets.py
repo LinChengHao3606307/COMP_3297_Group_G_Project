@@ -61,6 +61,8 @@ class ProductViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ["create", "update", "partial_update"]:
             return [permissions.IsAuthenticated(), IsProductOwner()]
+        if self.action in ['get_by_owner']:
+            return [permissions.IsAuthenticated(), IsProjectMember()]
         return [permissions.IsAuthenticated()]
     
     def create(self, request, *args, **kwargs):
@@ -72,7 +74,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path=r'(?P<email_prefix>[a-zA-Z_][\w-]*)')
     def get_by_owner(self, request, email_prefix=None):
-        email = f"{email_prefix}@{get_current_tenant().domain}"
+        email = f"{email_prefix}@{request.get_host().split(':')[0]}"
         products = Product.objects.filter(owner__email=email)
         if len(products):
             serializer = self.get_serializer(products, many=True, context={'request': request})
@@ -95,7 +97,7 @@ class ReportViewSet(viewsets.ModelViewSet):
             return [permissions.IsAuthenticated(), IsProductOwner()]
         elif self.action in ["claim", "fix"]:
             return [permissions.IsAuthenticated(), IsDeveloper()]
-        if self.action in ["update", "partial_update"]:
+        if self.action in ["update", "partial_update", "get_by_dev"]:
             return [permissions.IsAuthenticated(), IsProjectMember()]
         return [permissions.IsAuthenticated()]
 
@@ -172,7 +174,7 @@ class ReportViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path=r'(?P<email_prefix>[a-zA-Z_][\w-]*)')
     def get_by_dev(self, request, email_prefix=None):
-        email = f"{email_prefix}@{get_current_tenant().domain}"
+        email = f"{email_prefix}@{request.get_host().split(':')[0]}"
         reports = Report.objects.filter(assigned_to__isnull=False, assigned_to__email=email)
         if len(reports):
             order = request.GET.get('orderByTime', 'none')

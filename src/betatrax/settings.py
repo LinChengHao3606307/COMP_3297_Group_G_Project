@@ -26,7 +26,6 @@ SECRET_KEY = 'django-insecure-(ydai7%wput-1lfb-#8clmlk2=#jd^!zks5_hjy1(2ah-6p%ua
 DEBUG = True
 
 
-
 # Application definition
 SHARED_APPS = [
     'django_tenants',
