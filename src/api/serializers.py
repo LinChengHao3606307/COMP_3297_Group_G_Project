@@ -116,7 +116,7 @@ class ReportDetailSerializer(serializers.ModelSerializer):
             "url", "id", "title", "description", "status", "severity", "priority",
             "product", "assigned_to",
             "email", "comment_count", "comments",
-            "duplicated_to",
+            "duplicated_to", "updated_at"
         ]
 
 class ReportSubmissionSerializer(serializers.ModelSerializer):
@@ -132,16 +132,16 @@ class ReportSubmissionSerializer(serializers.ModelSerializer):
         fields = [
             "url", "id", "product", "created_at",
             "title", "description", "steps_to_reproduce",  
-            "email"
+            "email", "updated_at"
         ]
-        read_only_fields = ["created_at"]
+        read_only_fields = ["created_at", "updated_at"]
 
 
 class ReportUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
-        fields = '__all__'
-        read_only_fields = ["title", "description", "steps_to_reproduce", "email", "created_at"]
+        fields = ["status", "priority", "severity", "duplicated_to"]
+        read_only_fields = ["title", "description", "product", "steps_to_reproduce", "email", "created_at", "updated_at"]
 
     def __init__(self, *args, **kwargs):
         super(ReportUpdateSerializer, self).__init__(*args, **kwargs)

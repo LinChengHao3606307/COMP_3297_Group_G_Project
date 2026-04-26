@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.contrib.auth import login
 from .serializers import *
 from .permissions import *
+from tenant_users.tenants.utils import get_current_tenant
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -49,7 +50,6 @@ class UserViewSet(viewsets.ModelViewSet):
     
 
 class ProductViewSet(viewsets.ModelViewSet):
-    # TODO: add filter to get the product a PO owns
     queryset = Product.objects.all()
     serializer_class = ProductDetailSerializer
 
@@ -66,9 +66,22 @@ class ProductViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        product = serializer.save()
+        serializer.save()
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    @action(detail=False, methods=['get'], url_path=r'(?P<email_prefix>[a-zA-Z_][\w-]*)')
+    def get_by_owner(self, request, email_prefix=None):
+        email = f"{email_prefix}@{get_current_tenant().domain}"
+        products = Product.objects.filter(owner__email=email)
+        if len(products):
+            serializer = self.get_serializer(products, many=True, context={'request': request})
+            return Response(serializer.data)
+        if User.objects.filter(email=email).exists():
+            return Response({'message': 'This product owner has no products.'}, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+
 
 class ReportViewSet(viewsets.ModelViewSet):
     # TODO: add filter to get the reports a developer is assigned to
@@ -117,18 +130,18 @@ class ReportViewSet(viewsets.ModelViewSet):
         new_status = serializer.validated_data.get("status", old_status)
         user = request.user
         # Product Owner actions
-        if new_status in [Report.Status.OPEN, Report.Status.REJECTED, Report.Status.DUPLICATE, Report.Status.REOPENED]:
+        if new_status in [Report.Status.OPEN, Report.Status.REJECTED, Report.Status.DUPLICATE, Report.Status.REOPENED, Report.Status.RESOLVED]:
             if not IsProductOwner().has_permission(request, self):
-                return Response({"error": "Only Product Owners can evaluate reports"}, status=403)
+                return Response({"error": "Only Product Owners can perform this action"}, status=403)
+            if not IsProductOwner().has_object_permission(request, self, report):
+                return Response({"error": "You do not have permission to modify this report"}, status=403)
 
         # Developer actions
-        if new_status in [Report.Status.ASSIGNED, Report.Status.FIXED]:
+        if new_status in [Report.Status.ASSIGNED, Report.Status.FIXED, Report.Status.CANNOT_REPRODUCE]:
             if not IsDeveloper().has_permission(request, self):
                 return Response({"error": "Only Developers can perform this action"}, status=403)
-
-        if new_status == Report.Status.RESOLVED:
-            if not IsProductOwner().has_permission(request, self):
-                return Response({"error": "Only Product Owners can resolve reports"}, status=403)
+            if not IsDeveloper().has_object_permission(request, self, report) and new_status != Report.Status.ASSIGNED:
+                return Response({"error": "You do not have permission to modify this report"}, status=403)
             
         if new_status == Report.Status.OPEN:
             serializer.save(assigned_to=None, duplicated_to=None)
@@ -138,11 +151,7 @@ class ReportViewSet(viewsets.ModelViewSet):
             duplicate_report = serializer.validated_data.get("duplicated_to")
             priority = duplicate_report.priority
             severity = duplicate_report.severity
-            if duplicate_report.assigned_to:
-                assigned_to = duplicate_report.assigned_to
-            else:
-                assigned_to = None
-            serializer.save(duplicated_to=duplicate_report, status=Report.Status.DUPLICATE, priority=priority, severity=severity, assigned_to=assigned_to)
+            serializer.save(duplicated_to=duplicate_report, status=Report.Status.DUPLICATE, priority=priority, severity=severity, assigned_to=None)
         else:
             serializer.save(duplicated_to=None)
 
@@ -151,12 +160,30 @@ class ReportViewSet(viewsets.ModelViewSet):
         if report.email:
             print(f"Email to {report.email}: Defect report {report.title} has been updated.")
         return Response(serializer_display.data, status=status.HTTP_200_OK)
+    
+    def list(self, request, *args, **kwargs):
+        order = request.GET.get('orderByTime', 'none')
+        order = order.lower()
+        if order not in ['asc', 'desc']:
+            return super().list(request, *args, **kwargs)
+        reports = Report.objects.all().order_by('-updated_at' if order == 'desc' else 'updated_at')
+        serializer = self.get_serializer(reports, many=True, context={'request': request})
+        return Response(serializer.data)
 
-    def retrieve(self, request, *args, **kwargs):
-        # Excluded by project assumption: reflect changes immediately
-        report = self.get_object()
-        serializer = self.get_serializer(report)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    @action(detail=False, methods=['get'], url_path=r'(?P<email_prefix>[a-zA-Z_][\w-]*)')
+    def get_by_dev(self, request, email_prefix=None):
+        email = f"{email_prefix}@{get_current_tenant().domain}"
+        reports = Report.objects.filter(assigned_to__isnull=False, assigned_to__email=email)
+        if len(reports):
+            order = request.GET.get('orderByTime', 'none')
+            order = order.lower()
+            if order in ['asc', 'desc']:
+                reports = reports.order_by('-updated_at' if order == 'desc' else 'updated_at')
+            serializer = self.get_serializer(reports, many=True, context={'request': request})
+            return Response(serializer.data)
+        if User.objects.filter(email=email).exists():
+            return Response({'message': 'This developer has not yet assigned any reports.'}, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
