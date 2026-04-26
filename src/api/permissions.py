@@ -1,12 +1,16 @@
 from rest_framework import permissions
 
+from .models import *
+
 
 class IsDeveloper(permissions.BasePermission):
     def has_permission(self, request, view):
         return bool(request.user) and hasattr(request.user, "developer")
     
     def has_object_permission(self, request, view, obj):
-        return str(request.user) == obj.assigned_to.username
+        if isinstance(obj, Report):
+            return str(request.user) == obj.assigned_to.username
+        return True
 
 
 class IsProductOwner(permissions.BasePermission):
@@ -14,7 +18,9 @@ class IsProductOwner(permissions.BasePermission):
         return bool(request.user) and hasattr(request.user, "productowner")
     
     def has_object_permission(self, request, view, obj):
-        return str(request.user) == obj.product.owner.username
+        if isinstance(obj, Report):
+            return str(request.user) == obj.product.owner.username
+        return True
 
 
 class CanUpdateReportStatus(permissions.BasePermission):
