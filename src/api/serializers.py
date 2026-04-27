@@ -67,7 +67,6 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         fields = ["url", "id", "name", "version", "owner", "reports", "report_count"]
 
 class ProductCreationSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Product
         fields = [
@@ -75,6 +74,9 @@ class ProductCreationSerializer(serializers.ModelSerializer):
             "name",
             "version",
         ]
+        extra_kwargs = {
+            'owner': {'read_only': True}
+        }
 
 class ReportDetailSerializer(serializers.ModelSerializer):
     # 1. Nested Details
@@ -148,9 +150,19 @@ class ReportUpdateSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super(ReportUpdateSerializer, self).__init__(*args, **kwargs)
-
         if self.instance:
             self.fields["status"].choices = self.get_allowed_statuses()
+            if self.instance.status != Report.Status.NEW:
+                #remove priotiy and severity from required fields and make them read-only (not show in gui)
+                self.fields['priority'].required = False
+                self.fields['severity'].required = False
+                self.fields['duplicated_to'].required = False
+                self.fields['priority'].read_only = True
+                self.fields['severity'].read_only = True
+                self.fields['duplicated_to'].read_only = True
+            if self.instance.status == Report.Status.DUPLICATE:
+                self.fields['duplicated_to'].required = True
+                self.fields['duplicated_to'].read_only = False
 
     def to_internal_value(self, data):
         status_input = data.get('status')
