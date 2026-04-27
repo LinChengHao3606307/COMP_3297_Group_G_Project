@@ -35,8 +35,10 @@
 - Implemented duplicate report
 - Implemented reopen status
 - Implemented sorting and filtering functions
+- Implemented permissions for every users
 ###
 - Wrote readme.md for the use instruction
+- Wrote schema.yaml for api documentations
 
 ## Lin Chenghao
 ### Vision Document
