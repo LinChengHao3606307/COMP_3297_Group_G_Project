@@ -64,18 +64,16 @@ class ProductViewSet(viewsets.ModelViewSet):
         return super().get_serializer_class()
 
     def get_permissions(self):
-        if self.action in ["create"]:
+        print(f"Action: {self.action}")
+        print(f"User: {self.request.user}, Authenticated: {self.request.user.is_authenticated}")
+        if self.action in ['get_by_owner',"list","retrieve"]:
             return [permissions.IsAuthenticated()]
-        if self.action in ["update", "partial_update"]:
-            return [permissions.IsAuthenticated(), IsProductOwner()]
-        if self.action in ['get_by_owner']:
-            return [permissions.IsAuthenticated(), IsProjectMember()]
-        return [permissions.IsAuthenticated()]
+        return [permissions.IsAuthenticated(), IsProductOwner()]
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(owner = request.user)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -102,7 +100,7 @@ class ReportViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ["create"]:
             return [permissions.IsAuthenticated(), IsTester()]
-        if self.action in ["evaluate", "resolve"]:
+        if self.action in ["evaluate", "resolve","destroy"]:
             return [permissions.IsAuthenticated(), IsProductOwner()]
         elif self.action in ["claim", "fix"]:
             return [permissions.IsAuthenticated(), IsDeveloper()]
@@ -207,7 +205,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         ).order_by('created_at')
 
     def get_permissions(self):
-        if self.action in ["list", "detail", "create", "destroy", "update", "partial_update"]:
+        if self.action in ["destroy", "update", "partial_update"]:
             return [permissions.IsAuthenticated(), IsProjectMember()]
         return [permissions.IsAuthenticated()]
 

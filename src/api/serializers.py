@@ -67,10 +67,6 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         fields = ["url", "id", "name", "version", "owner", "reports", "report_count"]
 
 class ProductCreationSerializer(serializers.ModelSerializer):
-    owner = serializers.SlugRelatedField(
-        slug_field="email",
-        queryset=User.objects.filter(role=User.Role.PRODUCT_OWNER)
-    )
 
     class Meta:
         model = Product
