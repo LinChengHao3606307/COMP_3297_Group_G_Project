@@ -89,9 +89,12 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 class ReportViewSet(viewsets.ModelViewSet):
     # TODO: add filter to get the reports a developer is assigned to
-    queryset = Report.objects.all()
     serializer_class = ReportDetailSerializer
 
+    def get_queryset(self):
+        product_pk = self.kwargs.get("products_pk")
+        return Report.objects.filter(product_id=product_pk)
+    
     def get_permissions(self):
         if self.action in ["create"]:
             return [permissions.IsAuthenticated(), IsTester()]
@@ -177,7 +180,8 @@ class ReportViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path=r'(?P<email_prefix>[a-zA-Z_][\w-]*)')
     def get_by_dev(self, request, email_prefix=None):
         email = f"{email_prefix}@{request.get_host().split(':')[0]}"
-        reports = Report.objects.filter(assigned_to__isnull=False, assigned_to__email=email)
+        product_pk = self.kwargs.get("products_pk")
+        reports = Report.objects.filter(assigned_to__isnull=False, assigned_to__email=email, product_id=product_pk)
         if len(reports):
             order = request.GET.get('orderByTime', 'none')
             order = order.lower()
@@ -190,8 +194,13 @@ class ReportViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+
+    def get_queryset(self):
+        report_pk = self.kwargs.get("report_pk")
+        return Comment.objects.filter(
+            report_id=report_pk,
+        ).order_by('created_at')
 
     def get_permissions(self):
         if self.action in ["list", "detail", "create", "destroy", "update", "partial_update"]:
