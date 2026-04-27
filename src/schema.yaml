@@ -1,11 +1,12 @@
 openapi: 3.0.3
 info:
   title: 'BetaTrax: Defect Report management API'
-  version: 0.1.0
-  description: API documentation for the components of BetaTrax
+  version: 1.0.0
+  description: BetaTrax is a Software as a Service (SaaS) model to deliver those applications to its customers; each product is cloud-hosted and accessed by customers via the internet. The company uses a scheduled release strategy. For each of its products, this includes a beta testing program as a component of quality assurance. Managing the defects reported by beta testers is the focus of your project.
 paths:
   /developer-metrics/:
     get:
+      summary: List Developer Metrics
       operationId: developer_metrics_list
       tags:
       - developer-metrics
@@ -23,6 +24,7 @@ paths:
           description: ''
   /developer-metrics/{id}/:
     get:
+      summary: Retrieve individual Developer Metrics
       operationId: developer_metrics_retrieve
       parameters:
       - in: path
@@ -45,6 +47,7 @@ paths:
           description: ''
   /products/:
     get:
+      summary: List Products
       operationId: products_list
       tags:
       - products
@@ -62,6 +65,8 @@ paths:
           description: ''
     post:
       operationId: products_create
+      summary: Create a new Product
+      description: 'Only product owners can create products. The owner is automatically set to the authenticated user making the request.'
       tags:
       - products
       requestBody:
@@ -89,6 +94,7 @@ paths:
   /products/{email_prefix}/:
     get:
       operationId: products_retrieve
+      summary: Retrieve individual Product by email prefix of product owner
       parameters:
       - in: path
         name: email_prefix
@@ -111,6 +117,7 @@ paths:
   /products/{id}/:
     get:
       operationId: products_retrieve_2
+      summary: Retrieve individual Product instance
       parameters:
       - in: path
         name: id
@@ -132,6 +139,8 @@ paths:
           description: ''
     put:
       operationId: products_update
+      summary: Update a Product instance
+      description: 'Only product owners can update products. The owner field is read-only and cannot be changed.'
       parameters:
       - in: path
         name: id
@@ -165,6 +174,8 @@ paths:
           description: ''
     delete:
       operationId: products_destroy
+      summary: Delete a Product instance
+      description: 'Only product owners can delete products.'
       parameters:
       - in: path
         name: id
@@ -183,6 +194,8 @@ paths:
   /products/{products_pk}/report/:
     get:
       operationId: products_report_list
+      summary: List Reports for a Product
+      description: 'Retrieve a list of reports associated with a specific product.'
       parameters:
       - in: path
         name: products_pk
@@ -205,6 +218,8 @@ paths:
           description: ''
     post:
       operationId: products_report_create
+      summary: Create a new Report for a Product
+      description: 'Submit a new report associated with a specific product. Only testers can create reports. The product field is automatically set to the product identified by products_pk in the URL. The status field is automatically set to "New". Email field is automatically set to the registered email of the tester if left blank.'
       parameters:
       - in: path
         name: products_pk
@@ -238,6 +253,7 @@ paths:
   /products/{products_pk}/report/{email_prefix}/:
     get:
       operationId: products_report_retrieve
+      summary: Retrieve individual Report by email prefix of claimed developer
       parameters:
       - in: path
         name: email_prefix
@@ -265,6 +281,8 @@ paths:
   /products/{products_pk}/report/{id}/:
     get:
       operationId: products_report_retrieve_2
+      summary: Retrieve individual Report instance
+      description: 'Retrieve the details of a specific report associated with a product.'
       parameters:
       - in: path
         name: id
@@ -291,6 +309,8 @@ paths:
           description: ''
     put:
       operationId: products_report_update
+      summary: Update a Report instance
+      description: 'Only the product owner and developers can use this endpoint. The product owner can update all fields except assigned_to / fixed / Cannot to be reproduced and use this to update report status. Developers can only update the assigned_to / fixed / Cannot be reproduced field to claim / unclaim / mark as cannot be reproduced a report assigned to them. The assigned_to field is automatically set to the developer claiming the report when the fixed field is set to true. The assigned_to field is automatically cleared when the fixed field is set to false. The status field is automatically updated to "Fixed" when the fixed field is set to true, and "Reopened" when the fixed field is set to false. The status field is automatically updated to "Cannot Reproduce" when the cannot_be_reproduced field is set to true, and "Reopened" when the cannot_be_reproduced field is set to false.'
       parameters:
       - in: path
         name: id
@@ -328,6 +348,8 @@ paths:
           description: ''
     delete:
       operationId: products_report_destroy
+      summary: Delete a Report instance
+      description: 'Only the product owner can delete reports.'
       parameters:
       - in: path
         name: id
@@ -351,6 +373,8 @@ paths:
   /products/{products_pk}/report/{report_pk}/comments/:
     get:
       operationId: products_report_comments_list
+      summary: List comments for a Report
+      description: 'Retrieve a list of comments associated with a specific report.'
       parameters:
       - in: path
         name: products_pk
@@ -378,6 +402,8 @@ paths:
           description: ''
     post:
       operationId: products_report_comments_create
+      summary: Create a new Comment for a Report
+      description: 'Submit a new comment associated with a specific report'
       parameters:
       - in: path
         name: products_pk
@@ -416,6 +442,8 @@ paths:
   /products/{products_pk}/report/{report_pk}/comments/{id}/:
     get:
       operationId: products_report_comments_retrieve
+      summary: Retrieve individual Comment instance
+      description: 'Retrieve the details of a specific comment associated with a report.'
       parameters:
       - in: path
         name: id
@@ -446,6 +474,8 @@ paths:
           description: ''
     put:
       operationId: products_report_comments_update
+      summary: Update a Comment instance
+      description: 'Only the author of a comment can update it.'
       parameters:
       - in: path
         name: id
@@ -487,6 +517,8 @@ paths:
                 $ref: '#/components/schemas/Comment'
           description: ''
     delete:
+      summary: Delete a Comment instance
+      description: 'Only the author of a comment can delete it.'
       operationId: products_report_comments_destroy
       parameters:
       - in: path
@@ -514,6 +546,7 @@ paths:
           description: No response body
   /users/:
     get:
+      summary: List Users
       operationId: users_list
       tags:
       - users
@@ -529,34 +562,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/User'
           description: ''
-    post:
-      operationId: users_create
-      tags:
-      - users
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/User'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/User'
-        required: true
-      security:
-      - cookieAuth: []
-      - basicAuth: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-          description: ''
   /users/{id}/:
     get:
+      summary: Retrieve individual User instance
       operationId: users_retrieve
       parameters:
       - in: path
@@ -578,6 +586,8 @@ paths:
                 $ref: '#/components/schemas/User'
           description: ''
     put:
+      summary: Update a User instance
+      description: 'Users can update their own information and change their password. Admin users can update any user.'
       operationId: users_update
       parameters:
       - in: path
@@ -612,6 +622,8 @@ paths:
           description: ''
     delete:
       operationId: users_destroy
+      summary: Delete a User instance
+      description: 'Users can delete their own account. Admin users can delete any user.'
       parameters:
       - in: path
         name: id
@@ -628,6 +640,8 @@ paths:
         '204':
           description: No response body
   /users/register/:
+    summary: Register a new user
+    description: 'Create a new user account. The role field determines the role of the user being registered (PO, DEV, or TESTER). No need to be authenticated to access this endpoint.'
     post:
       operationId: users_register_create
       tags:
