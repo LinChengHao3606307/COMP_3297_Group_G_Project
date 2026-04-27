@@ -7,9 +7,12 @@ from .permissions import *
 from tenant_users.tenants.utils import get_current_tenant
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
     serializer_class = UserSerializer
 
+    def get_queryset(self):
+        current_tenant = get_current_tenant()
+        return current_tenant.user_set.all()
+    
     def get_serializer_class(self):
         if self.action in ['create', 'register']:
             return UserRegistrationSerializer
