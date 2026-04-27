@@ -136,9 +136,10 @@ class ReportViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         product_pk = self.kwargs.get("products_pk")
         product = get_object_or_404(Product, id=product_pk)
+        email = request.data.get('email') if request.data.get('email') else request.user.email
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        report = serializer.save(status=Report.Status.NEW, product=product)
+        report = serializer.save(status=Report.Status.NEW, product=product, email=email)
         if report.email:
             print(f"Email to {report.email}: Defect report {report.title} has been created.")
         headers = self.get_success_headers(serializer.data)

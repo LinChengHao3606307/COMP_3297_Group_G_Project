@@ -48,7 +48,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
     owner = UserSerializer(read_only=True)
     reports = serializers.SerializerMethodField()
-    comment_count = serializers.IntegerField(source='reports.count', read_only=True)
+    report_count = serializers.IntegerField(source='reports.count', read_only=True)
 
     def get_url(self, obj):
         request = self.context.get('request')
@@ -64,7 +64,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Product
-        fields = ["url", "id", "name", "version", "owner", "reports", "comment_count"]
+        fields = ["url", "id", "name", "version", "owner", "reports", "report_count"]
 
 class ProductCreationSerializer(serializers.ModelSerializer):
     owner = serializers.SlugRelatedField(
@@ -86,6 +86,12 @@ class ReportDetailSerializer(serializers.ModelSerializer):
     assigned_to = UserSerializer(read_only=True)
 
     comments = serializers.SerializerMethodField()
+    def get_comments(self, obj):
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f'/products/{obj.product.id}/report/{obj.id}/comments/')
+        return None
+    
     comment_count = serializers.IntegerField(
         source='comments.count',
         read_only=True
@@ -103,11 +109,13 @@ class ReportDetailSerializer(serializers.ModelSerializer):
         if request:
             return request.build_absolute_uri(f'/products/{obj.product.id}/report/{obj.id}/')
         return None
-
-    def get_comments(self, obj):
-        request = self.context.get('request')
-        if request:
-            return request.build_absolute_uri(f'/products/{obj.product.id}/report/{obj.id}/comments/')
+    
+    duplicated_to = serializers.SerializerMethodField()
+    def get_duplicated_to(self, obj):
+        if obj.duplicated_to:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(f'/products/{obj.product.id}/report/{obj.duplicated_to.id}/')
         return None
 
     class Meta:
