@@ -2,28 +2,41 @@
 This project is aims at making BetaTrax, a software that links beta testers to developers and product owners.
 
 ## How to Use
-Note: This is just a Minimum Viable Product. Detailed functionality (e.g. Permission checking, authentication) is not included.
 ### Installation
 - git clone https://github.com/LinChengHao3606307/COMP_3297_Group_G_Project` in your desired directory
 - Make sure Python 3.12+ (I'm on 3.14.0) is installed
-- Make a virtual environment in your favourite way (ie, uv, venv, conda etc.) Install all python package dependencies using pip install -r requirements`. The library versions are the latest as of 24/3/2026. Later versions should work but just in case
-- Enter the virtual environment with `source ./.venv/bin/activate` or something like that
+- Make a virtual environment in your favourite way (ie, uv, venv, conda etc.) Install all python package dependencies using `pip install -r requirements`. The library versions are the latest as of 24/3/2026. Later versions should work but just in case
+- Enter the root of the project directory and enable virtual environment with `source venv/Scripts/activate` (Linux) or `.\venv\Scripts\Activate.ps1` (Windows)
 - `cd src` to get to the root folder of the code or else all `python manage.py` won't work
-- `python manage.py migrate` to create a database on your side.
-- `python manage.py createsuperuser` to create a user that can access admin page. The admin page is `http://127.0.0.1:8000/admin`
+- make sure betatrax/settings.py has the following setting for connecting to PostgreSQL
+```
+        'NAME': 'betatrax_db',
+        'USER': 'postgres',
+        'PASSWORD': '3297',
+        'HOST': 'localhost',
+        'PORT': '5432',
+```
+Follow the order below and run all commands
+```bash
+python cleanAllMig.py
+python manage.py makemigrations
+python manage.py migrate_schemas --shared
+python manage.py create_public_tenant --domain_url betatrax.localhost --owner_email admin@betatrax.localhost`
+python manage.py createsuperuser` ## to create a user like `sup@betatrax.localhost` that can access admin page. The admin page is `http://betatrax.localhost:8000/admin`
+python manage.py runserver` ## to run the server
+```
 
 ### Commands to start the server
 - `python manage.py runserver` to run the server
 
-### Accessing the app
-- Create Users (Testers, Developers, Product Owners) and Products on the admin page `http://127.0.0.1:8000/admin`. The credentials are the ones you created using `createsuperuser`. For Users, user_id can be any integer and is only used for displaying on the front end. Similarly, Product name and version can be any text. 
-- There is a browsable API provided by REST framework. Follow the GUI instructions after entering `http://127.0.0.1:8000/`. There are links to the related endpoints for each GET request.
-- To log in or log out the browsable API, search for the login / logout buttons in the top right corner of the GUI. Browsable API implements session-based authentication so you do not need to log in every time.
-- To authenticate with direct API calls (like `curl`), use the basic authentication header `Authentication: BASIC` or in cURL, `curl -u "{username}:{password}"`. There is no memory for API calls so authentication is required in every call.
-- On the list endpoints (`/products/`, `/products/{id}/reports/`, `/reports/`, `/reports/{id}/comments/`), there is a POST form for creating content. Permission may be required for some endpoints like Product Owner for registering products. Reports can be sorted by the time last updated using GET parameter `?orderByTime=asc` or `?orderByTime=desc`
-- To filter the Products owned by product owner, it could be done by accessing (`/products/{PO_username}`)
-- To filter the Reports assigned for developer, it could be done by accessing (`/reports/{developer_username}`). The filtered report can also be sorted by the time last updated stated above.
-- On the retrieve endpoints (`/products/{id}/`, `/reports/{id}/`), there is a PUT form to update the content instances. Updating requires correct permissions and has limits on what to change. For example, only Product Owners can change a New report to Open, while only Developers can change an Open report to Assigned (to them).
+### First time setup for brand new server / databases
+1. enter admin page (link: http://betatrax.localhost:8000/admin)
+2. create tenant in Tenant model
+3. link tenant to a subdomain in Domain (link has to be ended with .localhost if you do not have a hostname)
+4. go to http://yourlink.localhost:8000/users/register/ to create new users
+
+### Instructions and API references
+API references are provided at http://betatrax.localhost:8000/api/schema/redoc and http://betatrax.localhost:8000/api/schema/swagger-ui/ . Brief explanation is in the API references
 
 
 ## Important docs:
