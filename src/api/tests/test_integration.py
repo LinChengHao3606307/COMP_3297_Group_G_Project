@@ -12,13 +12,15 @@ from ..models import *
 class BlankDatabaseTests(TestCase):
     def setUp(self):
         self.tenant = create_public_tenant(domain_url='testserver', owner_email='super@test.com')
-        # self.owner = User.objects.create_user(email='admin@test.com', password='asd', role=User.Role.PRODUCT_OWNER)
         self.owner = User.objects.get(email="super@test.com")
+        self.owner.role = User.Role.PRODUCT_OWNER
+        self.owner.save()
         self.test_tenant = Tenant.objects.create(name="test", owner=self.owner, schema_name="test")
         self.test_tenant.add_user(self.owner, is_superuser=True)
         connection.set_tenant(self.test_tenant)
 
         self.client = APIClient()
+        self.client.force_authenticate(user=self.owner)
         super().setUp()
 
     def test_base_link(self):
@@ -36,6 +38,8 @@ class BlankDatabaseTests(TestCase):
     #
     #     def test(email, password, role):
     #         r = self.client.post("/users/", {"email": email, "password": password, "role": role})
+    #         print(f"Schema at runtime: {connection.schema_name}")
+    #         print(f"Response Data: {r.data}")  # Since it's DRF, check .data instead of .content
     #         self.assertEqual(r.status_code, status.HTTP_201_CREATED)
     #         self.assertHasAttr(r, "data")
     #         self.assertIn("id", r.data)
@@ -50,15 +54,23 @@ class BlankDatabaseTests(TestCase):
     #     test(email_dev, password_dev, User.Role.DEVELOPER)
     #     test(email_po, password_po, User.Role.PRODUCT_OWNER)
 
-
+#
 # class ProductsTests(APITestCase):
 #     def setUp(self):
-#         self.tenant = create_public_tenant(
-#             domain_url='test.localhost',
-#             owner_email='admin@test.com',
-#         )
+#         self.tenant = create_public_tenant(domain_url='testserver', owner_email='super@test.com')
+#         self.owner = User.objects.get(email="super@test.com")
+#         self.owner.role = User.Role.PRODUCT_OWNER
+#         self.owner.save()
+#         self.test_tenant = Tenant.objects.create(name="test", owner=self.owner, schema_name="test")
+#         self.test_tenant.add_user(self.owner, is_superuser=True)
+#
 #         self.dev = User.objects.create_user(email='dev@test.com', password='dev', role=User.Role.DEVELOPER)
 #         self.po = User.objects.create_user(email='po@test.com', password='po', role=User.Role.PRODUCT_OWNER)
+#         connection.set_tenant(self.test_tenant)
+#
+#         self.client = APIClient()
+#         self.client.force_authenticate(user=self.owner)
+#         super().setUp()
 #
 #     def test_create_product(self):
 #         # Success
