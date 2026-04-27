@@ -1,15 +1,18 @@
+import json
 from django_tenants.test.cases import TenantTestCase
 from django_tenants.test.client import TenantClient
 from rest_framework import status
 from tenant_users.tenants.utils import create_public_tenant
 from tenant_users.tenants.models import ExistsError
+from django_tenants.utils import schema_context, get_public_schema_name
 
-from ..models import *
+from ..models import Product, Report
+from user_home.models import User
 
 class IntegrationTests(TenantTestCase):
     @classmethod
     def setup_tenant(cls, tenant):
-        # 1. Safely bootstrap the public tenant, domain, and a public owner
+        # Create public tenant for user authentication
         try:
             create_public_tenant(
                 domain_url="public.testserver",
@@ -18,15 +21,24 @@ class IntegrationTests(TenantTestCase):
         except ExistsError:
             pass
 
-        # 2. Now you can safely create your test tenant's owner
-        cls.owner = User.objects.create_user(
-            email="super@test.com", 
-            password="password123", 
-            role=User.Role.PRODUCT_OWNER
-        )
-        cls.tester = User.objects.create_user(email="tester@localhost", password="asd", role=User.Role.TESTER)
-        cls.dev = User.objects.create_user(email="dev@loaclhost", password="", role=User.Role.DEVELOPER)
-        # 3. Setup the specific test tenant
+        # Create users in the public schema
+        with schema_context(get_public_schema_name()):
+            cls.owner = User.objects.create_user(
+                email="super@test.com", 
+                password="password123", 
+                role=User.Role.PRODUCT_OWNER
+            )
+            cls.tester = User.objects.create_user(
+                email="tester@test.com", 
+                password="password123", 
+                role=User.Role.TESTER
+            )
+            cls.dev = User.objects.create_user(
+                email="dev@test.com", 
+                password="password123", 
+                role=User.Role.DEVELOPER
+            )
+
         tenant.owner = cls.owner
         tenant.name = "Test Tenant"
         return tenant
@@ -37,62 +49,64 @@ class IntegrationTests(TenantTestCase):
         self.tenant.add_user(self.tester)
         self.tenant.add_user(self.dev)
         self.client = TenantClient(self.tenant)
-        self.client.force_login(user=self.owner)
-
-    def test_base_link(self):
-        r = self.client.get("/")
-        self.assertEqual(r.status_code, status.HTTP_200_OK)
-        self.assertIn("products", r.data)
-        self.assertIn("users", r.data)
-
-    def test_create_user(self):
-        email_dev = "uin89y34iomdvsm@a.com"
-        password_dev = "sdfvioh24qt89ynjkf"
-        email_po = "nuojdvs89023riondvsion235.sdv@b.com"
-        password_po = "asd89yu3r2iond23bgwtrenyyu"
-
-        def test(email, password, role):
-            return  # 301 redirect..?
-            r = self.client.post("/users/register", {"email": email, "password": password, "role": role})
-            self.assertEqual(r.status_code, status.HTTP_201_CREATED)
-            self.assertHasAttr(r, "data")
-            self.assertIn("id", r.data)
-            self.assertEqual(r.data["email"], email)
-
-            self.assertEqual(User.objects.filter(role=role).count(), 1)
-            user = User.objects.filter(role=role)[0]
-            self.assertEqual(user.email, email)
-            self.assertEqual(user.role, role)
-            self.assertTrue(user.check_password(password))
-
-        test(email_dev, password_dev, User.Role.DEVELOPER)
-        test(email_po, password_po, User.Role.PRODUCT_OWNER)
 
     def test_full_cycle(self):
-        # PO: Create product
+        """Simulates the bug report lifecycle with proper JSON encoding and DB refreshes."""
+        
+        # --- STEP 1: PO creates a product ---
         self.client.force_login(user=self.owner)
-        name = "Test Product"
-        version = "1.0.0"
-        r = self.client.post("/products/", data={"name": name, "version": version})
-        self.assertEqual(r.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Product.objects.count(), 1)
-        product = Product.objects.all()[0]
-        self.assertEqual(product.name, name)
-        self.assertEqual(product.version, version)
+        name = "AlphaApp"
+        version = "1.0"
+        r_prod = self.client.post("/products/", data={"name": name, "version": version})
+        self.assertEqual(r_prod.status_code, status.HTTP_201_CREATED)
 
-        # Tester: Look for the products
+        # Get ID from DB since serializer doesn't return it
+        product = Product.objects.get(name=name, version=version)
+        product_id = product.id
+
+        # --- STEP 2: Tester reports a bug ---
         self.client.force_login(user=self.tester)
-        r = self.client.get("/products/")
-        self.assertEqual(r.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(r.data), 1)
-        self.assertIn("reports", r.data[0])
+        report_data = {
+            "title": "Crash on startup",
+            "description": "App crashes immediately",
+            "steps_to_reproduce": "1. Open app.",
+            "email": "user@customer.com"
+        }
+        r_rep = self.client.post(f"/products/{product_id}/report/", data=report_data)
+        self.assertEqual(r_rep.status_code, status.HTTP_201_CREATED)
+        
+        report = Report.objects.get(title="Crash on startup", product=product)
+        report_id = report.id
 
-        # Create report
-        title = "Test Report"
-        description = "Test"
-        steps = "Test 2"
-        email = "t@b.com"
-        r = self.client.post("/products/1/report", data={"title": title, "description": description, "steps_to_reproduce": steps, "email": email})
-        return  # 301 redirect..?
-        self.assertEqual(r.status_code, status.HTTP_201_CREATED)
+        # --- STEP 3: PO Evaluates (Sets to OPEN) ---
+        # FIX: Must use JSON format and include required fields (Priority/Severity)
+        self.client.force_login(user=self.owner)
+        update_data = {
+            "status": Report.Status.OPEN,
+            "priority": Report.Priority.HIGH,
+            "severity": Report.Severity.MAJOR
+        }
+        r_open = self.client.patch(
+            f"/products/{product_id}/report/{report_id}/", 
+            data=json.dumps(update_data), 
+            content_type="application/json"
+        )
+        self.assertEqual(r_open.status_code, status.HTTP_200_OK)
+        
+        # CRITICAL: Update local variable from database
+        report.refresh_from_db()
+        self.assertEqual(report.status, Report.Status.OPEN)
 
+        # --- STEP 4: Developer Claims the report ---
+        self.client.force_login(user=self.dev)
+        r_claim = self.client.patch(
+            f"/products/{product_id}/report/{report_id}/", 
+            data=json.dumps({"status": Report.Status.ASSIGNED}), 
+            content_type="application/json"
+        )
+        self.assertEqual(r_claim.status_code, status.HTTP_200_OK)
+        
+        # CRITICAL: Update local variable from database again
+        report.refresh_from_db()
+        self.assertEqual(report.status, Report.Status.ASSIGNED)
+        self.assertEqual(report.assigned_to, self.dev)

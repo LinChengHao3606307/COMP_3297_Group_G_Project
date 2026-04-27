@@ -120,7 +120,7 @@ class ReportViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == "create":
             return ReportSubmissionSerializer
-        elif self.action == "update":
+        elif self.action in ["update", "partial_update"]:
             return ReportUpdateSerializer
         elif self.action == "retrieve":
             return ReportDetailSerializer
