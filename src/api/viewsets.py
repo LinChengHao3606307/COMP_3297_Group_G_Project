@@ -55,7 +55,6 @@ class UserViewSet(viewsets.ModelViewSet):
     
 class DeveloperMetricsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DeveloperMetricsSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_permissions(self):
         return [permissions.IsAuthenticated(), IsProjectMember()]
