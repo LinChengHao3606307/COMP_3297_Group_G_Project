@@ -63,6 +63,7 @@
 - Implemented validation for report lifecycle and constraints
 - Added various methods in serializers and viewsets
 - Helped debugging and testing edge cases for others' code
+- More testing on the newly implemented features after integrating PostgreSQL and located various bugs
 
 ## Liu Chun Yin
 ### Sprint 0
