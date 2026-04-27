@@ -44,6 +44,43 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
         return user
 
+class DeveloperMetricsSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+    effectiveness = serializers.SerializerMethodField()
+    fixed_report = serializers.IntegerField(read_only=True)
+    reopened_report = serializers.IntegerField(read_only=True)
+    reopened_ratio = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['url', 'id', 'email', 'fixed_report', 'reopened_report', 'reopened_ratio', 'effectiveness']
+
+    def get_url(self, obj):
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f'/developer-metrics/{obj.id}/')
+        return None
+
+    def get_reopened_ratio(self, obj):
+        if obj.fixed_report <= 0:
+            return None
+        return round(obj.reopened_report / obj.fixed_report, 4)
+
+    def get_effectiveness(self, obj):
+        fixed = obj.fixed_report
+        reopened = obj.reopened_report
+
+        if fixed < 20:
+            return "Insufficient data"
+
+        ratio = reopened / fixed
+        if ratio < 0.03125:
+            return "Good"
+        elif ratio < 0.125:
+            return "Fair"
+        else:
+            return "Poor"
+
 class ProductDetailSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
     owner = UserSerializer(read_only=True)

@@ -22,6 +22,10 @@ class User(UserProfile):
         db_index=True
     )
 
+    fixed_report = models.IntegerField(default=0)
+
+    reopened_report = models.IntegerField(default=0)
+
     @property
     def is_product_owner(self):
         return self.role == self.Role.PRODUCT_OWNER

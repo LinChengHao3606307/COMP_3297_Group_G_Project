@@ -53,6 +53,13 @@ class UserViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED
         )
     
+class DeveloperMetricsViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = DeveloperMetricsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        current_tenant = get_current_tenant()
+        return current_tenant.user_set.filter(role=User.Role.DEVELOPER)
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
@@ -136,7 +143,7 @@ class ReportViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(report, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
 
-        new_status = serializer.validated_data.get("status", old_status)
+        new_status = serializer.validated_data.get("status")
         user = request.user
         # Product Owner actions
         if new_status in [Report.Status.OPEN, Report.Status.REJECTED, Report.Status.DUPLICATE, Report.Status.REOPENED, Report.Status.RESOLVED]:
@@ -144,6 +151,9 @@ class ReportViewSet(viewsets.ModelViewSet):
                 return Response({"error": "Only Product Owners can perform this action"}, status=403)
             if not IsProductOwner().has_object_permission(request, self, report):
                 return Response({"error": "You do not have permission to modify this report"}, status=403)
+            if old_status != Report.Status.REOPENED and new_status == Report.Status.REOPENED:
+                report.assigned_to.reopened_report += 1
+                report.assigned_to.save()
 
         # Developer actions
         if new_status in [Report.Status.ASSIGNED, Report.Status.FIXED, Report.Status.CANNOT_REPRODUCE]:
@@ -151,6 +161,9 @@ class ReportViewSet(viewsets.ModelViewSet):
                 return Response({"error": "Only Developers can perform this action"}, status=403)
             if not IsDeveloper().has_object_permission(request, self, report) and new_status != Report.Status.ASSIGNED:
                 return Response({"error": "You do not have permission to modify this report"}, status=403)
+            if old_status != Report.Status.FIXED and new_status == Report.Status.FIXED:
+                report.assigned_to.fixed_report += 1
+                report.assigned_to.save()
             
         if new_status == Report.Status.OPEN:
             serializer.save(assigned_to=None, duplicated_to=None)

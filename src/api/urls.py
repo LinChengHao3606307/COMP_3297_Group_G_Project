@@ -1,9 +1,10 @@
 from rest_framework.routers import DefaultRouter
 from rest_framework_nested import routers as nested_routers
-from .viewsets import ProductViewSet, ReportViewSet, UserViewSet, CommentViewSet
+from .viewsets import UserViewSet, DeveloperMetricsViewSet, ProductViewSet, ReportViewSet, CommentViewSet
 app_name = 'api'
 
 router = DefaultRouter()
+router.register(r'developer-metrics', DeveloperMetricsViewSet, basename='developer-metrics')
 router.register(r'users', UserViewSet, basename='users')
 router.register(r'products', ProductViewSet, basename='products')
 
