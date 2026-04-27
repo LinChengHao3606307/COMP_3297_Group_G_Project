@@ -73,8 +73,6 @@ class ProductViewSet(viewsets.ModelViewSet):
         return super().get_serializer_class()
 
     def get_permissions(self):
-        print(f"Action: {self.action}")
-        print(f"User: {self.request.user}, Authenticated: {self.request.user.is_authenticated}")
         if self.action in ['get_by_owner',"list","retrieve"]:
             return [permissions.IsAuthenticated()]
         return [permissions.IsAuthenticated(), IsProductOwner()]

@@ -623,7 +623,7 @@ paths:
     delete:
       operationId: users_destroy
       summary: Delete a User instance
-      description: 'Users can delete their own account. Admin users can delete any user.'
+      description: 'Users can delete their own account. Only Product owners can delete users.'
       parameters:
       - in: path
         name: id
