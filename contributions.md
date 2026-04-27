@@ -10,13 +10,16 @@
 - Did not participate in making this
 ### Product Backlog
 - Wrote some backlog items
+- Refined backlog
 ### Source Code
 - Set up the base django project and REST framework. Configured the router and urls
 - Created the model definitions
 - Wrote most serializers.
 - Wrote logic for creating reports and going through its life cycle
-- Implemented authorization system
-- Implemented create product
+- Wrote logic for checking permissions
+- Implemented the entire authorization system (basic authorization)
+- Implemented product registration
+- Implemented basic tests (most got broken by multi-tenant implementation, out of time to fix them)
 ### Others
 - Refined readme use instructions
 
