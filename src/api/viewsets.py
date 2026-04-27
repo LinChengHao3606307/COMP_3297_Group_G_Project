@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, MethodNotAllowed
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import login
 from .serializers import *
@@ -16,13 +16,15 @@ class UserViewSet(viewsets.ModelViewSet):
         return current_tenant.user_set.all()
     
     def get_serializer_class(self):
-        if self.action in ['create', 'register']:
+        if self.action in ['register']:
             return UserRegistrationSerializer
         return super().get_serializer_class()
 
     def get_permissions(self):
-        if self.action in ['register', 'login', "create"]:
+        if self.action in ['register', 'login', None]:
             return [permissions.AllowAny()]
+        elif self.action in ["create"]:
+            return [DisallowEvery()]
         else:
             if self.action in ["destroy", "update", "partial_update"]:
                 return [permissions.IsAuthenticated(), IsProductOwner()]
@@ -37,20 +39,6 @@ class UserViewSet(viewsets.ModelViewSet):
             raise ValidationError({
                 "email": f"only allowed to create user under {current_domain}!"
             })
-        
-    def create(self, request, *args, **kwargs):
-
-        email = request.data.get('email', '')
-        self._validate_email_domain(email)
-        
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        
-        return Response(
-            UserSerializer(user).data,
-            status=status.HTTP_201_CREATED
-        )
     
     @action(detail=False, methods=['post'], url_path='register')
     def register(self, request, *args, **kwargs):

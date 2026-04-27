@@ -1,6 +1,11 @@
 from rest_framework import permissions
 from .models import *
 
+class DisallowEvery(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return False
+
+
 class IsTester(permissions.BasePermission):
     def has_permission(self, request, view):
         return bool(request.user) and request.user.is_tester
