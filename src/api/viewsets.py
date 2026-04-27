@@ -170,7 +170,7 @@ class ReportViewSet(viewsets.ModelViewSet):
         if new_status == Report.Status.OPEN:
             serializer.save(assigned_to=None, duplicated_to=None)
         elif new_status == Report.Status.ASSIGNED:
-            serializer.save(assigned_to=user.developer, duplicated_to=None)
+            serializer.save(assigned_to=user, duplicated_to=None)
         elif new_status == Report.Status.DUPLICATE:
             duplicate_report = serializer.validated_data.get("duplicated_to")
             priority = duplicate_report.priority

@@ -11,7 +11,9 @@ class IsDeveloper(permissions.BasePermission):
         return bool(request.user) and request.user.is_developer
     def has_object_permission(self, request, view, obj):
         if isinstance(obj, Report):
-            return str(request.user) == obj.assigned_to.email
+            if obj.assigned_to:
+                return str(request.user) == obj.assigned_to.email
+            return True
         return True
 
 
