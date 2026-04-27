@@ -57,6 +57,9 @@ class DeveloperMetricsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DeveloperMetricsSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_permissions(self):
+        return [permissions.IsAuthenticated(), IsProjectMember()]
+    
     def get_queryset(self):
         current_tenant = get_current_tenant()
         return current_tenant.user_set.filter(role=User.Role.DEVELOPER)
