@@ -21,19 +21,17 @@ class UserViewSet(viewsets.ModelViewSet):
         return super().get_serializer_class()
 
     def get_permissions(self):
-        if self.action == 'register':
-            return [permissions.AllowAny()]
-        elif self.action == 'login':
+        if self.action in ['register', 'login', "create"]:
             return [permissions.AllowAny()]
         else:
-            if self.action in ["create", "destroy", "update", "partial_update"]:
+            if self.action in ["destroy", "update", "partial_update"]:
                 return [permissions.IsAuthenticated(), IsProductOwner()]
             return [permissions.IsAuthenticated()]
 
     def _validate_email_domain(self, email):
         current_domain = self.request.get_host().split(':')[0]
         if '@' not in email:
-            raise ValidationError({"email": "邮箱格式无效"})
+            raise ValidationError({"email": "this is not a valid email address!"})
         _, email_domain = email.split('@', 1)
         if email_domain != current_domain:
             raise ValidationError({
