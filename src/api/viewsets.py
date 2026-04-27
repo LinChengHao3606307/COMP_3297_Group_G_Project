@@ -1,6 +1,8 @@
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
+from django.shortcuts import get_object_or_404
 from django.contrib.auth import login
 from .serializers import *
 from .permissions import *
@@ -28,7 +30,21 @@ class UserViewSet(viewsets.ModelViewSet):
                 return [permissions.IsAuthenticated(), IsProductOwner()]
             return [permissions.IsAuthenticated()]
 
+    def _validate_email_domain(self, email):
+        current_domain = self.request.get_host().split(':')[0]
+        if '@' not in email:
+            raise ValidationError({"email": "邮箱格式无效"})
+        _, email_domain = email.split('@', 1)
+        if email_domain != current_domain:
+            raise ValidationError({
+                "email": f"only allowed to create user under {current_domain}!"
+            })
+        
     def create(self, request, *args, **kwargs):
+
+        email = request.data.get('email', '')
+        self._validate_email_domain(email)
+        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
@@ -91,7 +107,6 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 
 class ReportViewSet(viewsets.ModelViewSet):
-    # TODO: add filter to get the reports a developer is assigned to
     serializer_class = ReportDetailSerializer
 
     def get_queryset(self):
@@ -119,14 +134,13 @@ class ReportViewSet(viewsets.ModelViewSet):
         return super().get_serializer_class()
 
     def create(self, request, *args, **kwargs):
+        product_pk = self.kwargs.get("products_pk")
+        product = get_object_or_404(Product, id=product_pk)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        report = serializer.save(status="New")
-
+        report = serializer.save(status=Report.Status.NEW, product=product)
         if report.email:
             print(f"Email to {report.email}: Defect report {report.title} has been created.")
-
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 

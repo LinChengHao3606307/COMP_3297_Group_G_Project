@@ -120,7 +120,6 @@ class ReportDetailSerializer(serializers.ModelSerializer):
         ]
 
 class ReportSubmissionSerializer(serializers.ModelSerializer):
-    product = serializers.SlugRelatedField(slug_field="name", queryset=Product.objects.all())
     url = serializers.SerializerMethodField()
     def get_url(self, obj):
         request = self.context.get('request')
@@ -130,7 +129,7 @@ class ReportSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
         fields = [
-            "url", "id", "product", "created_at",
+            "url", "id", "created_at",
             "title", "description", "steps_to_reproduce",  
             "email", "updated_at"
         ]
