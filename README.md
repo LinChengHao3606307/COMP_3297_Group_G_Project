@@ -36,7 +36,7 @@ python manage.py runserver` ## to run the server
 4. go to http://yourlink.localhost:8000/users/register/ to create new users
 
 ### Instructions and API references
-API references are provided in schema.yaml at [here](/src/schema). For online webpage view, please go to [public hosting](#public-hosting) section. 
+API references are provided in schema.yaml at [here](/src/schema.yaml). For online webpage view, please go to [public hosting](#public-hosting) section. 
 
 ### Public Hosting
 This service is currently hosted on http://comet13579.tplinkdns.com:8000/. For a visualized view of api documents, please visit http://comet13579.tplinkdns.com:8000/api/schema/redoc/ or http://comet13579.tplinkdns.com:8000/api/schema/swagger-ui/ 
