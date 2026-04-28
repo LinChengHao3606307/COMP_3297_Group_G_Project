@@ -110,6 +110,7 @@ class ProductCreationSerializer(serializers.ModelSerializer):
             "owner",
             "name",
             "version",
+            "id",
         ]
         extra_kwargs = {
             'owner': {'read_only': True}

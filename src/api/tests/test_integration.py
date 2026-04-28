@@ -52,15 +52,14 @@ class IntegrationTests(TenantTestCase):
         password_po = "asd89yu3r2iond23bgwtrenyyu"
 
         def test(email, password, role):
-            return  # 301 redirect..?
-            r = self.client.post("/users/register", {"email": email, "password": password, "role": role})
+            r = self.client.post("/users/", {"email": email, "password": password, "role": role})
             self.assertEqual(r.status_code, status.HTTP_201_CREATED)
             self.assertHasAttr(r, "data")
-            self.assertIn("id", r.data)
             self.assertEqual(r.data["email"], email)
+            self.assertEqual(r.data["role"], role)
 
-            self.assertEqual(User.objects.filter(role=role).count(), 1)
-            user = User.objects.filter(role=role)[0]
+            self.assertEqual(User.objects.filter(email=email).count(), 1)
+            user = User.objects.filter(email=email)[0]
             self.assertEqual(user.email, email)
             self.assertEqual(user.role, role)
             self.assertTrue(user.check_password(password))
@@ -75,6 +74,9 @@ class IntegrationTests(TenantTestCase):
         version = "1.0.0"
         r = self.client.post("/products/", data={"name": name, "version": version})
         self.assertEqual(r.status_code, status.HTTP_201_CREATED)
+        self.assertHasAttr(r, "data")
+        self.assertIn("id", r.data)
+        product_id = r.data["id"]
         self.assertEqual(Product.objects.count(), 1)
         product = Product.objects.all()[0]
         self.assertEqual(product.name, name)
@@ -92,7 +94,12 @@ class IntegrationTests(TenantTestCase):
         description = "Test"
         steps = "Test 2"
         email = "t@b.com"
-        r = self.client.post("/products/1/report", data={"title": title, "description": description, "steps_to_reproduce": steps, "email": email})
-        return  # 301 redirect..?
+        r = self.client.post(f"/products/{product_id}/report/", data={"title": title, "description": description, "steps_to_reproduce": steps, "email": email})
         self.assertEqual(r.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(r.data["title"], title)
+        self.assertEqual(r.data["description"], description)
+        self.assertEqual(r.data["steps_to_reproduce"], steps)
+        self.assertEqual(r.data["email"], email)
+        self.assertIn("id", r.data)
+        report_id = r.data["id"]
 
