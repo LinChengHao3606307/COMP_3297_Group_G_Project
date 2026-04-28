@@ -4,7 +4,7 @@ This project is aims at making BetaTrax, a software that links beta testers to d
 ## How to Use
 ### Installation
 - git clone https://github.com/LinChengHao3606307/COMP_3297_Group_G_Project` in your desired directory
-- Make sure Python 3.12+ (I'm on 3.14.0) is installed
+- Make sure Python 3.12+ is installed
 - Make a virtual environment in your favourite way (ie, uv, venv, conda etc.) Install all python package dependencies using `pip install -r requirements`. The library versions are the latest as of 24/3/2026. Later versions should work but just in case
 - Enter the root of the project directory and enable virtual environment with `source venv/Scripts/activate` (Linux) or `.\venv\Scripts\Activate.ps1` (Windows)
 - `cd src` to get to the root folder of the code or else all `python manage.py` won't work
