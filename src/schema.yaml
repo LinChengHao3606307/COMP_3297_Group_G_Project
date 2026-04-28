@@ -202,6 +202,16 @@ paths:
         schema:
           type: string
         required: true
+      - in: query
+        name: orderByTime
+        schema:
+          type: string
+          enum:
+            - asc
+            - desc
+        required: false
+        description: Order the reports by time (creation or update time). Use "asc" for oldest first, "desc" for newest first.
+        example: desc
       tags:
       - products
       security:
@@ -261,6 +271,16 @@ paths:
           type: string
           pattern: ^[a-zA-Z_][\w-]*$
         required: true
+      - in: query
+        name: orderByTime
+        schema:
+          type: string
+          enum:
+            - asc
+            - desc
+        required: false
+        description: Order the reports by time (creation or update time). Use "asc" for oldest first, "desc" for newest first.
+        example: desc
       - in: path
         name: products_pk
         schema:

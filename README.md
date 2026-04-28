@@ -38,6 +38,9 @@ python manage.py runserver` ## to run the server
 ### Instructions and API references
 API references are provided at http://betatrax.localhost:8000/api/schema/redoc and http://betatrax.localhost:8000/api/schema/swagger-ui/ . Brief explanation is in the API references
 
+### Public Hosting
+This service is currently hosted on http://comet13579.tplinkdns.com:8000/. For quick view of api documents, please visit http://comet13579.tplinkdns.com:8000/api/schema/redoc/ or http://comet13579.tplinkdns.com:8000/api/schema/swagger-ui/ 
+
 
 ## Important docs:
 - [vision doc](https://connecthkuhk-my.sharepoint.com/:w:/g/personal/u3606307_connect_hku_hk/IQD9kZZRnJiPTIxSGjKxoOG3Aex-NwIiyNTZywPfMKIx8PU?e=etTHGP)
