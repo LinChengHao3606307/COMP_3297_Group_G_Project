@@ -219,7 +219,9 @@ class CommentViewSet(viewsets.ModelViewSet):
         ).order_by('created_at')
 
     def get_permissions(self):
-        if self.action in ["destroy", "update", "partial_update"]:
+        if self.action in ["list", "retrieve"]:
+            return [permissions.AllowAny()]
+        elif self.action in ["destroy", "update", "partial_update"]:
             return [permissions.IsAuthenticated(), IsCommentAuthor()]
         return [permissions.IsAuthenticated()]
 
