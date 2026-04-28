@@ -28,11 +28,24 @@ class IsProductOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if isinstance(obj, Report):
             return str(request.user) == obj.product.owner.email
-        return True
+        elif isinstance(obj, Product):
+            return str(request.user) == obj.owner.email
 
 class IsProjectMember(permissions.BasePermission):
     def has_permission(self, request, view):
         return IsProductOwner().has_permission(request, view) or IsDeveloper().has_permission(request, view)
+    
+class IsCommentAuthor(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if isinstance(obj, Comment):
+            return str(request.user) == obj.author.email
+        return False
+    
+class IsUserItself(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if isinstance(obj, User):
+            return str(request.user) == obj.email
+        return False
     
 class CanUpdateReportStatus(permissions.BasePermission):
     # TODO: support more statuses
