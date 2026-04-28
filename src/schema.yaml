@@ -11,8 +11,7 @@ paths:
       tags:
       - developer-metrics
       security:
-      - cookieAuth: []
-      - basicAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -36,8 +35,7 @@ paths:
       tags:
       - developer-metrics
       security:
-      - cookieAuth: []
-      - basicAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -52,8 +50,7 @@ paths:
       tags:
       - products
       security:
-      - cookieAuth: []
-      - basicAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -82,7 +79,6 @@ paths:
               $ref: '#/components/schemas/ProductCreation'
         required: true
       security:
-      - cookieAuth: []
       - basicAuth: []
       responses:
         '201':
@@ -105,8 +101,7 @@ paths:
       tags:
       - products
       security:
-      - cookieAuth: []
-      - basicAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -128,8 +123,7 @@ paths:
       tags:
       - products
       security:
-      - cookieAuth: []
-      - basicAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -163,7 +157,6 @@ paths:
               $ref: '#/components/schemas/ProductDetail'
         required: true
       security:
-      - cookieAuth: []
       - basicAuth: []
       responses:
         '200':
@@ -186,7 +179,6 @@ paths:
       tags:
       - products
       security:
-      - cookieAuth: []
       - basicAuth: []
       responses:
         '204':
@@ -215,8 +207,7 @@ paths:
       tags:
       - products
       security:
-      - cookieAuth: []
-      - basicAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -251,7 +242,6 @@ paths:
               $ref: '#/components/schemas/ReportSubmission'
         required: true
       security:
-      - cookieAuth: []
       - basicAuth: []
       responses:
         '201':
@@ -289,7 +279,6 @@ paths:
       tags:
       - products
       security:
-      - cookieAuth: []
       - basicAuth: []
       responses:
         '200':
@@ -318,8 +307,7 @@ paths:
       tags:
       - products
       security:
-      - cookieAuth: []
-      - basicAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -357,7 +345,6 @@ paths:
             schema:
               $ref: '#/components/schemas/ReportUpdate'
       security:
-      - cookieAuth: []
       - basicAuth: []
       responses:
         '200':
@@ -385,7 +372,6 @@ paths:
       tags:
       - products
       security:
-      - cookieAuth: []
       - basicAuth: []
       responses:
         '204':
@@ -409,7 +395,6 @@ paths:
       tags:
       - products
       security:
-      - cookieAuth: []
       - basicAuth: []
       responses:
         '200':
@@ -450,7 +435,6 @@ paths:
               $ref: '#/components/schemas/Comment'
         required: true
       security:
-      - cookieAuth: []
       - basicAuth: []
       responses:
         '201':
@@ -483,8 +467,7 @@ paths:
       tags:
       - products
       security:
-      - cookieAuth: []
-      - basicAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -527,7 +510,6 @@ paths:
               $ref: '#/components/schemas/Comment'
         required: true
       security:
-      - cookieAuth: []
       - basicAuth: []
       responses:
         '200':
@@ -559,7 +541,6 @@ paths:
       tags:
       - products
       security:
-      - cookieAuth: []
       - basicAuth: []
       responses:
         '204':
@@ -571,8 +552,7 @@ paths:
       tags:
       - users
       security:
-      - cookieAuth: []
-      - basicAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -601,8 +581,6 @@ paths:
               $ref: '#/components/schemas/UserRegistration'
         required: true
       security:
-      - cookieAuth: []
-      - basicAuth: []
       - {}
       responses:
         '200':
@@ -625,8 +603,7 @@ paths:
       tags:
       - users
       security:
-      - cookieAuth: []
-      - basicAuth: []
+      - {}
       responses:
         '200':
           content:
@@ -660,7 +637,6 @@ paths:
               $ref: '#/components/schemas/User'
         required: true
       security:
-      - cookieAuth: []
       - basicAuth: []
       responses:
         '200':
@@ -683,16 +659,12 @@ paths:
       tags:
       - users
       security:
-      - cookieAuth: []
       - basicAuth: []
       responses:
         '204':
           description: No response body
 components:
   schemas:
-    BlankEnum:
-      enum:
-      - ''
     Comment:
       type: object
       properties:
@@ -1099,7 +1071,3 @@ components:
     basicAuth:
       type: http
       scheme: basic
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: sessionid
