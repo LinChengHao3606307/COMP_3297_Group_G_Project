@@ -16,19 +16,16 @@ class UserViewSet(viewsets.ModelViewSet):
         return current_tenant.user_set.all()
     
     def get_serializer_class(self):
-        if self.action in ['register']:
+        if self.action in ['register', 'create']:
             return UserRegistrationSerializer
         return super().get_serializer_class()
 
     def get_permissions(self):
-        if self.action in ['register', 'login', None]:
+        if self.action in ['register', 'login', "create"]:
             return [permissions.AllowAny()]
-        elif self.action in ["create"]:
-            return [DisallowEvery()]
-        else:
-            if self.action in ["destroy", "update", "partial_update"]:
-                return [permissions.IsAuthenticated(), IsUserItself()]
-            return [permissions.IsAuthenticated()]
+        elif self.action in ["destroy", "update", "partial_update"]:
+            return [permissions.IsAuthenticated(), IsUserItself()]
+        return [permissions.AllowAny()]
 
     def _validate_email_domain(self, email):
         current_domain = self.request.get_host().split(':')[0]

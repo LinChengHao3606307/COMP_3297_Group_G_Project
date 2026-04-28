@@ -28,12 +28,16 @@ class User(UserProfile):
 
     @property
     def is_product_owner(self):
-        return self.role == self.Role.PRODUCT_OWNER
+        return self.role == self.Role.PRODUCT_OWNER or self.role == self.Role.ADMIN
 
     @property
     def is_developer(self):
-        return self.role == self.Role.DEVELOPER
+        return self.role == self.Role.DEVELOPER or self.role == self.Role.ADMIN
 
     @property
     def is_tester(self):
-        return self.role == self.Role.TESTER
+        return self.role == self.Role.TESTER or self.role == self.Role.ADMIN
+
+    @property
+    def is_admin(self):
+        return self.role == self.Role.ADMIN
