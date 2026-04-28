@@ -57,9 +57,7 @@ class DeveloperMetricsSerializer(serializers.ModelSerializer):
 
     def get_url(self, obj):
         request = self.context.get('request')
-        if request:
-            return request.build_absolute_uri(f'/developer-metrics/{obj.id}/')
-        return None
+        return request.build_absolute_uri(f'/developer-metrics/{obj.id}/')
 
     def get_reopened_ratio(self, obj):
         if obj.fixed_report <= 0:
@@ -89,16 +87,12 @@ class ProductDetailSerializer(serializers.ModelSerializer):
 
     def get_url(self, obj):
         request = self.context.get('request')
-        if request:
-            return request.build_absolute_uri(f'/products/{obj.id}')
-        return None
-    
+        return request.build_absolute_uri(f'/products/{obj.id}')
+
     def get_reports(self, obj):
         request = self.context.get('request')
-        if request:
-            return request.build_absolute_uri(f'/products/{obj.id}/report/')
-        return None
-    
+        return request.build_absolute_uri(f'/products/{obj.id}/report/')
+
     class Meta:
         model = Product
         fields = ["url", "id", "name", "version", "owner", "reports", "report_count"]
@@ -124,10 +118,8 @@ class ReportDetailSerializer(serializers.ModelSerializer):
     comments = serializers.SerializerMethodField()
     def get_comments(self, obj):
         request = self.context.get('request')
-        if request:
-            return request.build_absolute_uri(f'/products/{obj.product.id}/report/{obj.id}/comments/')
-        return None
-    
+        return request.build_absolute_uri(f'/products/{obj.product.id}/report/{obj.id}/comments/')
+
     comment_count = serializers.IntegerField(
         source='comments.count',
         read_only=True
@@ -142,16 +134,13 @@ class ReportDetailSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
     def get_url(self, obj):
         request = self.context.get('request')
-        if request:
-            return request.build_absolute_uri(f'/products/{obj.product.id}/report/{obj.id}/')
-        return None
-    
+        return request.build_absolute_uri(f'/products/{obj.product.id}/report/{obj.id}/')
+
     duplicated_to = serializers.SerializerMethodField()
     def get_duplicated_to(self, obj):
         if obj.duplicated_to:
             request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(f'/products/{obj.product.id}/report/{obj.duplicated_to.id}/')
+            return request.build_absolute_uri(f'/products/{obj.product.id}/report/{obj.duplicated_to.id}/')
         return None
 
     class Meta:
@@ -167,9 +156,7 @@ class ReportSubmissionSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
     def get_url(self, obj):
         request = self.context.get('request')
-        if request:
-            return request.build_absolute_uri(f'/products/{obj.product.id}/report/{obj.id}/')
-        return None
+        return request.build_absolute_uri(f'/products/{obj.product.id}/report/{obj.id}/')
     class Meta:
         model = Report
         fields = [
@@ -273,10 +260,8 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def get_url(self, obj):
         request = self.context.get('request')
-        if request:
-            return request.build_absolute_uri(f'/products/{obj.report.product.id}/report/{obj.report.id}/comments/{obj.id}')
-        return None
-    
+        return request.build_absolute_uri(f'/products/{obj.report.product.id}/report/{obj.report.id}/comments/{obj.id}')
+
     class Meta:
         model = Comment
         fields = [

@@ -90,10 +90,8 @@ class ReportViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ["create"]:
             return [permissions.IsAuthenticated(), IsTester()]
-        if self.action in ["evaluate", "resolve","destroy"]:
+        if self.action in ["destroy"]:
             return [permissions.IsAuthenticated(), IsProductOwner()]
-        elif self.action in ["claim", "fix"]:
-            return [permissions.IsAuthenticated(), IsDeveloper()]
         if self.action in ["update", "partial_update", "get_by_dev"]:
             return [permissions.IsAuthenticated(), IsProjectMember()]
         return [permissions.AllowAny()]

@@ -53,17 +53,3 @@ class IsUserItself(permissions.BasePermission):
         if isinstance(obj, User):
             return str(request.user) == obj.email
         return False
-    
-class CanUpdateReportStatus(permissions.BasePermission):
-    # TODO: support more statuses
-    def has_object_permission(self, request, view, obj):
-        if bool(request.user) and request.user.is_admin: return True
-        new_status = request.data.get('status')
-        if not new_status:
-            return True
-        new_status = new_status.lower()
-        if new_status in ["open", "rejected", "resolved"]:
-            return IsProductOwner().has_permission(request, view)
-        elif new_status in ["assigned", "fixed"]:
-            return IsDeveloper().has_permission(request, view)
-        return False

@@ -6,7 +6,8 @@ from tenant_users.tenants.models import ExistsError
 
 from ..models import *
 
-class IntegrationTests(TenantTestCase):
+class BlankTests(TenantTestCase):
+    # Tests where only the users exist at first
     @classmethod
     def setup_tenant(cls, tenant):
         # 1. Safely bootstrap the public tenant, domain, and a public owner
@@ -20,12 +21,12 @@ class IntegrationTests(TenantTestCase):
 
         # 2. Now you can safely create your test tenant's owner
         cls.owner = User.objects.create_user(
-            email="super@test.com", 
+            email="po@BlankTests",
             password="password123", 
             role=User.Role.PRODUCT_OWNER
         )
-        cls.tester = User.objects.create_user(email="tester@localhost", password="asd", role=User.Role.TESTER)
-        cls.dev = User.objects.create_user(email="dev@loaclhost", password="", role=User.Role.DEVELOPER)
+        cls.tester = User.objects.create_user(email="tester@BlankTests", password="asd", role=User.Role.TESTER)
+        cls.dev = User.objects.create_user(email="dev@BlankTests", password="", role=User.Role.DEVELOPER)
 
         # 3. Set up the specific test tenant
         tenant.owner = cls.owner
@@ -165,3 +166,27 @@ class IntegrationTests(TenantTestCase):
         self.assertEqual(report.status, Report.Status.RESOLVED)
 
         
+class ReportTests(TenantTestCase):
+    # Tests where users of different roles, and one product and one report are created
+    @classmethod
+    def setup_tenant(cls, tenant):
+        try:
+            create_public_tenant(domain_url="public.testserver", owner_email="public_admin@test.com")
+        except ExistsError:
+            pass
+
+        cls.owner = User.objects.create_user(email="pO@ReportTests", password="password123", role=User.Role.PRODUCT_OWNER)
+        cls.tester = User.objects.create_user(email="tester@ReportTests", password="asd", role=User.Role.TESTER)
+        cls.dev = User.objects.create_user(email="dev@ReportTests", password="", role=User.Role.DEVELOPER)
+
+        tenant.owner = cls.owner
+        tenant.name = "Test Tenant"
+        return tenant
+
+    def setUp(self):
+        super().setUp()
+        self.tenant.add_user(self.owner, is_superuser=True)
+        self.tenant.add_user(self.tester)
+        self.tenant.add_user(self.dev)
+        self.client = TenantClient(self.tenant)
+        self.client.force_login(user=self.owner)
