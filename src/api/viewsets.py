@@ -37,19 +37,6 @@ class UserViewSet(viewsets.ModelViewSet):
                 "email": f"only allowed to create user under {current_domain}!"
             })
     
-    @action(detail=False, methods=['post'], url_path='register')
-    def register(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-
-        login(request, user)
-
-        return Response(
-            UserSerializer(user).data,
-            status=status.HTTP_201_CREATED
-        )
-    
 class DeveloperMetricsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DeveloperMetricsSerializer
 

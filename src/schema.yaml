@@ -582,6 +582,35 @@ paths:
                 items:
                   $ref: '#/components/schemas/User'
           description: ''
+    post:
+      summary: Register a new user
+      description: 'Create a new user account. The role field determines the role of the user being registered (PO, DEV, or TESTER). No need to be authenticated to access this endpoint.'
+      operationId: users_register_create
+      tags:
+      - users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegistration'
+          description: ''
   /users/{id}/:
     get:
       summary: Retrieve individual User instance
@@ -659,36 +688,6 @@ paths:
       responses:
         '204':
           description: No response body
-  /users/register/:
-    summary: Register a new user
-    description: 'Create a new user account. The role field determines the role of the user being registered (PO, DEV, or TESTER). No need to be authenticated to access this endpoint.'
-    post:
-      operationId: users_register_create
-      tags:
-      - users
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserRegistration'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/UserRegistration'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/UserRegistration'
-        required: true
-      security:
-      - cookieAuth: []
-      - basicAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserRegistration'
-          description: ''
 components:
   schemas:
     BlankEnum:
