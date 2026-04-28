@@ -1,4 +1,4 @@
-# COMP 3297 Group G Project
+# COMP 3297 Group G Project BetaTrax
 This project is aims at making BetaTrax, a software that links beta testers to developers and product owners.
 
 ## How to Use
@@ -36,10 +36,10 @@ python manage.py runserver` ## to run the server
 4. go to http://yourlink.localhost:8000/users/register/ to create new users
 
 ### Instructions and API references
-API references are provided at http://betatrax.localhost:8000/api/schema/redoc and http://betatrax.localhost:8000/api/schema/swagger-ui/ . Brief explanation is in the API references
+API references are provided in schema.yaml at [here](/src/schema). For online webpage view, please go to [public hosting](#public-hosting) section. 
 
 ### Public Hosting
-This service is currently hosted on http://comet13579.tplinkdns.com:8000/. For quick view of api documents, please visit http://comet13579.tplinkdns.com:8000/api/schema/redoc/ or http://comet13579.tplinkdns.com:8000/api/schema/swagger-ui/ 
+This service is currently hosted on http://comet13579.tplinkdns.com:8000/. For a visualized view of api documents, please visit http://comet13579.tplinkdns.com:8000/api/schema/redoc/ or http://comet13579.tplinkdns.com:8000/api/schema/swagger-ui/ 
 
 
 ## Important docs:
@@ -52,6 +52,8 @@ This service is currently hosted on http://comet13579.tplinkdns.com:8000/. For q
 - [UI Storyboard](/COMP3297_Group_G.pdf)
 
 - [Domain Model](#domain-model)
+
+- [Contributions](#contributions.md)
 
 
 ## Domain Model
