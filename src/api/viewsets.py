@@ -27,7 +27,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return [DisallowEvery()]
         else:
             if self.action in ["destroy", "update", "partial_update"]:
-                return [permissions.IsAuthenticated(), IsProductOwner()]
+                return [permissions.IsAuthenticated(), IsUserItself()]
             return [permissions.IsAuthenticated()]
 
     def _validate_email_domain(self, email):
@@ -57,7 +57,7 @@ class DeveloperMetricsViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = DeveloperMetricsSerializer
 
     def get_permissions(self):
-        return [permissions.IsAuthenticated(), IsProjectMember()]
+        return [permissions.AllowAny()]
     
     def get_queryset(self):
         current_tenant = get_current_tenant()
@@ -74,7 +74,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ['get_by_owner',"list","retrieve"]:
-            return [permissions.IsAuthenticated()]
+            return [permissions.AllowAny()]
         return [permissions.IsAuthenticated(), IsProductOwner()]
     
     def create(self, request, *args, **kwargs):
@@ -96,7 +96,6 @@ class ProductViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-
 class ReportViewSet(viewsets.ModelViewSet):
     serializer_class = ReportDetailSerializer
 
@@ -113,7 +112,7 @@ class ReportViewSet(viewsets.ModelViewSet):
             return [permissions.IsAuthenticated(), IsDeveloper()]
         if self.action in ["update", "partial_update", "get_by_dev"]:
             return [permissions.IsAuthenticated(), IsProjectMember()]
-        return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -186,9 +185,11 @@ class ReportViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         order = request.GET.get('orderByTime', 'none')
         order = order.lower()
-        if order not in ['asc', 'desc']:
-            return super().list(request, *args, **kwargs)
-        reports = Report.objects.all().order_by('-updated_at' if order == 'desc' else 'updated_at')
+        print("order by time:", order)
+        if order in ['asc', 'desc']:
+            reports = Report.objects.all().order_by('-updated_at' if order == 'desc' else 'updated_at')
+        else:
+            reports = Report.objects.all().order_by('id')  # default order
         serializer = self.get_serializer(reports, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -219,7 +220,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action in ["destroy", "update", "partial_update"]:
-            return [permissions.IsAuthenticated(), IsProjectMember()]
+            return [permissions.IsAuthenticated(), IsCommentAuthor()]
         return [permissions.IsAuthenticated()]
 
     def get_queryset(self):

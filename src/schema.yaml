@@ -66,7 +66,7 @@ paths:
     post:
       operationId: products_create
       summary: Create a new Product
-      description: 'Only product owners can create products. The owner is automatically set to the authenticated user making the request.'
+      description: 'Only Product owners can create products. The owner is automatically set to the authenticated user making the request.'
       tags:
       - products
       requestBody:
@@ -94,7 +94,7 @@ paths:
   /products/{email_prefix}/:
     get:
       operationId: products_retrieve
-      summary: Retrieve individual Product by email prefix of product owner
+      summary: Retrieve individual Product by email prefix of Product owner
       parameters:
       - in: path
         name: email_prefix
@@ -140,7 +140,7 @@ paths:
     put:
       operationId: products_update
       summary: Update a Product instance
-      description: 'Only product owners can update products. The owner field is read-only and cannot be changed.'
+      description: 'Only the owner of the product can update products. The owner field is read-only and cannot be changed.'
       parameters:
       - in: path
         name: id
@@ -175,7 +175,7 @@ paths:
     delete:
       operationId: products_destroy
       summary: Delete a Product instance
-      description: 'Only product owners can delete products.'
+      description: 'Only the owner of the product can delete products.'
       parameters:
       - in: path
         name: id
@@ -330,7 +330,7 @@ paths:
     put:
       operationId: products_report_update
       summary: Update a Report instance
-      description: 'Only the product owner and developers can use this endpoint. The product owner can update all fields except assigned_to / fixed / Cannot to be reproduced and use this to update report status. Developers can only update the assigned_to / fixed / Cannot be reproduced field to claim / unclaim / mark as cannot be reproduced a report assigned to them. The assigned_to field is automatically set to the developer claiming the report when the fixed field is set to true. The assigned_to field is automatically cleared when the fixed field is set to false. The status field is automatically updated to "Fixed" when the fixed field is set to true, and "Reopened" when the fixed field is set to false. The status field is automatically updated to "Cannot Reproduce" when the cannot_be_reproduced field is set to true, and "Reopened" when the cannot_be_reproduced field is set to false.'
+      description: 'Only the owner of the product and developers can use this endpoint. The product owner can update all fields except Assigned_to / Fixed / Cannot to be reproduced and use this to update report status. Developers can only update the Assigned_to / Fixed / Cannot be reproduced field to claim / unclaim / mark as cannot be reproduced a report assigned to them. The assigned_to field is automatically set to the developer claiming the report when the fixed field is set to true. The assigned_to field is automatically cleared when the fixed field is set to false.'
       parameters:
       - in: path
         name: id
@@ -369,7 +369,7 @@ paths:
     delete:
       operationId: products_report_destroy
       summary: Delete a Report instance
-      description: 'Only the product owner can delete reports.'
+      description: 'Only the owner of the product can delete reports.'
       parameters:
       - in: path
         name: id
@@ -607,7 +607,7 @@ paths:
           description: ''
     put:
       summary: Update a User instance
-      description: 'Users can update their own information and change their password. Admin users can update any user.'
+      description: 'Users can update their own information and change their password.'
       operationId: users_update
       parameters:
       - in: path
@@ -643,7 +643,7 @@ paths:
     delete:
       operationId: users_destroy
       summary: Delete a User instance
-      description: 'Users can delete their own account. Only Product owners can delete users.'
+      description: 'Only the user themselves can delete their own account.'
       parameters:
       - in: path
         name: id
