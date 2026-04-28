@@ -26,7 +26,8 @@ class IntegrationTests(TenantTestCase):
         )
         cls.tester = User.objects.create_user(email="tester@localhost", password="asd", role=User.Role.TESTER)
         cls.dev = User.objects.create_user(email="dev@loaclhost", password="", role=User.Role.DEVELOPER)
-        # 3. Setup the specific test tenant
+
+        # 3. Set up the specific test tenant
         tenant.owner = cls.owner
         tenant.name = "Test Tenant"
         return tenant
@@ -77,8 +78,7 @@ class IntegrationTests(TenantTestCase):
         self.assertHasAttr(r, "data")
         self.assertIn("id", r.data)
         product_id = r.data["id"]
-        self.assertEqual(Product.objects.count(), 1)
-        product = Product.objects.all()[0]
+        product = Product.objects.get(id=product_id)
         self.assertEqual(product.name, name)
         self.assertEqual(product.version, version)
 
@@ -89,7 +89,8 @@ class IntegrationTests(TenantTestCase):
         self.assertEqual(len(r.data), 1)
         self.assertIn("reports", r.data[0])
 
-        # Create report
+        # Tester: Create report
+        self.client.force_login(user=self.tester)
         title = "Test Report"
         description = "Test"
         steps = "Test 2"
@@ -102,4 +103,65 @@ class IntegrationTests(TenantTestCase):
         self.assertEqual(r.data["email"], email)
         self.assertIn("id", r.data)
         report_id = r.data["id"]
+        report = Report.objects.get(id=report_id)
+        self.assertEqual(report.title, title)
+        self.assertEqual(report.description, description)
+        self.assertEqual(report.steps_to_reproduce, steps)
+        self.assertEqual(report.email, email)
+        self.assertEqual(report.priority, "")
+        self.assertEqual(report.severity, "")
+        self.assertEqual(report.status, Report.Status.NEW)
 
+        # PO: Get report
+        self.client.force_login(user=self.owner)
+        r = self.client.get(f"/products/{product_id}/report/{report_id}/")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertEqual(r.data["status"], "New")
+        self.assertEqual(r.data["comment_count"], 0)
+
+        # PO: Evaluate report to Open
+        self.client.force_login(user=self.owner)
+        severity = Report.Severity.CRITICAL
+        priority = Report.Priority.CRITICAL
+        r = self.client.put(f"/products/{product_id}/report/{report_id}/", data={"status": Report.Status.OPEN, "severity": severity, "priority": priority}, content_type="application/json")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        report = Report.objects.get(id=report_id)
+        self.assertEqual(report.status, Report.Status.OPEN)
+        self.assertEqual(report.priority, priority)
+        self.assertEqual(report.severity, severity)
+
+        # Dev: Assign report to self
+        self.client.force_login(user=self.dev)
+        r = self.client.get(f"/products/{product_id}/report/{report_id}/")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertEqual(r.data["status"], Report.Status.OPEN)
+        self.assertEqual(r.data["severity"], severity)
+        self.assertEqual(r.data["priority"], priority)
+        r = self.client.put(f"/products/{product_id}/report/{report_id}/", data={"status": Report.Status.ASSIGNED}, content_type="application/json")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        report = Report.objects.get(id=report_id)
+        self.assertEqual(report.status, Report.Status.ASSIGNED)
+        self.assertEqual(report.assigned_to, self.dev)
+
+        # Dev: Claim report as fixed
+        self.client.force_login(user=self.dev)
+        r = self.client.get(f"/products/{product_id}/report/{report_id}/")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertEqual(r.data["status"], Report.Status.ASSIGNED)
+        self.assertEqual(r.data["assigned_to"]["email"], self.dev.email)
+        r = self.client.put(f"/products/{product_id}/report/{report_id}/", data={"status": Report.Status.FIXED}, content_type="application/json")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        report = Report.objects.get(id=report_id)
+        self.assertEqual(report.status, Report.Status.FIXED)
+
+        # PO: Resolve the report
+        self.client.force_login(user=self.owner)
+        r = self.client.get(f"/products/{product_id}/report/{report_id}/")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertEqual(r.data["status"], Report.Status.FIXED)
+        r = self.client.put(f"/products/{product_id}/report/{report_id}/", data={"status": Report.Status.RESOLVED}, content_type="application/json")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        report = Report.objects.get(id=report_id)
+        self.assertEqual(report.status, Report.Status.RESOLVED)
+
+        
