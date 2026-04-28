@@ -5,3 +5,5 @@ venv/
 /src/db.sqlite3
 *.pyc
 src/staticfiles/
+src/.coverage
+src/betatrax/settings_production.py
