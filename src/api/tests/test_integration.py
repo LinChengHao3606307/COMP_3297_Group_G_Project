@@ -56,7 +56,7 @@ class BlankTests(TenantTestCase):
         def test(email, password, role):
             r = self.client.post("/users/", {"email": email, "password": password, "role": role})
             self.assertEqual(r.status_code, status.HTTP_201_CREATED)
-            self.assertHasAttr(r, "data")
+            self.assertIsNotNone(getattr(r, 'data', None))
             self.assertEqual(r.data["email"], email)
             self.assertEqual(r.data["role"], role)
 
@@ -76,7 +76,7 @@ class BlankTests(TenantTestCase):
         version = "1.0.0"
         r = self.client.post("/products/", data={"name": name, "version": version})
         self.assertEqual(r.status_code, status.HTTP_201_CREATED)
-        self.assertHasAttr(r, "data")
+        self.assertIsNotNone(getattr(r, 'data', None))
         self.assertIn("id", r.data)
         product_id = r.data["id"]
         product = Product.objects.get(id=product_id)

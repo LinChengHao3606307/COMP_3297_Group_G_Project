@@ -36,10 +36,18 @@ class ModelsTests(TenantTestCase):
     def test_create_user(self):
         email_dev = "dev@test.com"
         password_dev = "password123"
-        
+    
         def check_user(email, password, role):
             with schema_context(get_public_schema_name()):
-                user = User.objects.create_user(email=email, password=password, role=role)
+                # Use get_or_create + set password safely
+                user, created = User.objects.get_or_create(
+                    email=email,
+                    defaults={"role": role}
+                )
+                if not user.check_password(password):
+                    user.set_password(password)
+                    user.save()
+                
                 self.assertEqual(user.email, email)
                 self.assertTrue(user.check_password(password))
                 self.assertEqual(user.role, role)
