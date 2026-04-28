@@ -5,6 +5,8 @@ pkill -f gunicorn
 DJANGO_SETTINGS_MODULE=betatrax.settings_production \
 gunicorn --bind 0.0.0.0:8000 --workers 2 --threads 2 --worker-class gthread --max-requests 1000 --max-requests-jitter 100 --preload --log-level info betatrax.wsgi:application
 
+
+# Commented out systemd service file for reference. To use, save as /etc/systemd/system/betatrax.service and run:
 #[Unit]
 #Description=COMP3297 Betatrax Application
 #After=network.target postgresql.service
