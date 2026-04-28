@@ -1,10 +1,6 @@
 from rest_framework import permissions
 from .models import *
 
-class DisallowEvery(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return False
-
 
 class IsTester(permissions.BasePermission):
     def has_permission(self, request, view):
@@ -15,6 +11,7 @@ class IsTester(permissions.BasePermission):
 class IsDeveloper(permissions.BasePermission):
     def has_permission(self, request, view):
         return bool(request.user) and request.user.is_developer
+
     def has_object_permission(self, request, view, obj):
         if bool(request.user) and request.user.is_admin: return True
         if isinstance(obj, Report):
@@ -28,12 +25,14 @@ class IsProductOwner(permissions.BasePermission):
     def has_permission(self, request, view):
         if bool(request.user) and request.user.is_admin: return True
         return bool(request.user) and request.user.is_product_owner
+
     def has_object_permission(self, request, view, obj):
         if bool(request.user) and request.user.is_admin: return True
         if isinstance(obj, Report):
             return str(request.user) == obj.product.owner.email
         elif isinstance(obj, Product):
             return str(request.user) == obj.owner.email
+        return False
 
 class IsProjectMember(permissions.BasePermission):
     def has_permission(self, request, view):

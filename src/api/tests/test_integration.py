@@ -1,3 +1,4 @@
+from coverage import report
 from django_tenants.test.cases import TenantTestCase
 from django_tenants.test.client import TenantClient
 from rest_framework import status
@@ -46,6 +47,10 @@ class BlankTests(TenantTestCase):
         self.assertEqual(r.status_code, status.HTTP_200_OK)
         self.assertIn("products", r.data)
         self.assertIn("users", r.data)
+
+    def test_schema_view(self):
+        r = self.client.get("/api/schema/")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
 
     def test_create_user(self):
         email_dev = "uin89y34iomdvsm@a.com"
@@ -190,3 +195,109 @@ class ReportTests(TenantTestCase):
         self.tenant.add_user(self.dev)
         self.client = TenantClient(self.tenant)
         self.client.force_login(user=self.owner)
+        self.product = Product.objects.create(name="Test Product", version="1.0", owner=self.owner)
+        self.report = Report.objects.create(title="a", description="a", steps_to_reproduce="a", email="a", product=self.product)
+
+    def test_duplicate_mark(self):
+        self.client.force_login(user=self.owner)
+        self.report.status = Report.Status.OPEN
+        self.report.save()
+        report2 = Report.objects.create(title="a", description="a", steps_to_reproduce="a", email="a", product=self.product)
+        r = self.client.put(f"/products/{self.product.id}/report/{report2.id}/", {"status": Report.Status.DUPLICATE, "duplicated_to": self.report.id}, content_type="application/json")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        report2 = Report.objects.get(id=report2.id)
+        self.assertEqual(report2.status, Report.Status.DUPLICATE)
+        self.assertEqual(report2.duplicated_to, self.report)
+
+        r = self.client.get(f"/products/{self.product.id}/report/{report2.id}/")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertIn("duplicated_to", r.data)
+
+    def test_duplicate_mark_fail(self):
+        self.client.force_login(user=self.owner)
+        report2 = Report.objects.create(title="a", description="a", steps_to_reproduce="a", email="a", product=self.product)
+        r = self.client.put(f"/products/{self.product.id}/report/{report2.id}/", {"status": Report.Status.DUPLICATE, "duplicated_to": self.report.id}, content_type="application/json")
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("non_field_errors", r.data)  # "A report cannot be marked as duplicate of itself."
+
+        self.report.status = Report.Status.OPEN
+        self.report.save()
+
+        r = self.client.put(f"/products/{self.product.id}/report/{report2.id}/", {"status": Report.Status.DUPLICATE}, content_type="application/json")
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("non_field_errors", r.data)  # "This field is required when changing status to DUPLICATE."
+
+        r = self.client.put(f"/products/{self.product.id}/report/{report2.id}/", {"status": Report.Status.DUPLICATE, "duplicated_to": report2.id},
+                            content_type="application/json")
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("non_field_errors", r.data)  # "A report cannot be marked as duplicate of itself."
+
+    def test_garbage_status(self):
+        self.client.force_login(user=self.owner)
+        r = self.client.put(f"/products/{self.product.id}/report/{self.report.id}/", {"status": "GETFIXEDBOI"}, content_type="application/json")
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("status", r.data)  # f"'{status_input}' is not a valid choice. Available options: {', '.join(valid_choices)}"
+
+        r = self.client.put(f"/products/{self.product.id}/report/{self.report.id}/", {"status": "OPEN"}, content_type="application/json")
+        self.assertEqual(r.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("status", r.data)  # "Priority and severity must be set when report is NEW"
+
+    def test_developer_metrics(self):
+        self.client.force_login(user=self.dev)
+        r = self.client.get(f"/developer-metrics/")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.dev.fixed_report = 1
+        self.dev.save()
+        r = self.client.get(f"/developer-metrics/")
+        self.dev.fixed_report = 100
+        self.dev.reopened_report = 50
+        self.dev.save()
+        r = self.client.get(f"/developer-metrics/")
+        self.dev.reopened_report = 10
+        self.dev.save()
+        r = self.client.get(f"/developer-metrics/")
+        self.dev.reopened_report = 1
+        self.dev.save()
+        r = self.client.get(f"/developer-metrics/")
+
+    def test_modify_report(self):
+        self.client.force_login(user=self.owner)
+        r = self.client.put(f"/products/{self.product.id}/", {"name": "aaa", "version": "2.0"}, content_type="application/json")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        self.assertEqual(r.data["version"], "2.0")
+
+
+class AdminPermissionTests(TenantTestCase):
+    # Tests permissions for admin
+    @classmethod
+    def setup_tenant(cls, tenant):
+        try:
+            create_public_tenant(domain_url="public.testserver", owner_email="public_admin@test.com")
+        except ExistsError:
+            pass
+
+        cls.owner = User.objects.create_user(email="admin@AdminPermissionTests", password="password123",
+                                             role=User.Role.ADMIN)
+
+        tenant.owner = cls.owner
+        tenant.name = "Test Tenant"
+        return tenant
+
+    def setUp(self):
+        super().setUp()
+        self.tenant.add_user(self.owner, is_superuser=True)
+        self.client = TenantClient(self.tenant)
+        self.client.force_login(user=self.owner)
+        self.product = Product.objects.create(name="Test Product", version="1.0", owner=self.owner)
+        self.report = Report.objects.create(title="a", description="a", steps_to_reproduce="a", email="a",
+                                            product=self.product)
+
+    def test_admin_permissions(self):
+        self.client.force_login(user=self.owner)
+        r = self.client.post(f"/products/{self.product.id}/report/", data={"title": "title", "description": "description", "steps_to_reproduce": "steps"})
+        self.assertEqual(r.status_code, status.HTTP_201_CREATED)
+        report_id = r.data["id"]
+        r = self.client.put(f"/products/{self.product.id}/report/{report_id}/", data={"status": Report.Status.OPEN, "severity": Report.Severity.CRITICAL, "priority": Report.Priority.CRITICAL}, content_type="application/json")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
+        r = self.client.put(f"/products/{self.product.id}/report/{report_id}/", data={"status": Report.Status.ASSIGNED}, content_type="application/json")
+        self.assertEqual(r.status_code, status.HTTP_200_OK)
