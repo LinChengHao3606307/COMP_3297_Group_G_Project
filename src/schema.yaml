@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: 'BetaTrax: Defect Report management API'
   version: 1.0.0
-  description: BetaTrax is a Software as a Service (SaaS) model to deliver those applications to its customers; each product is cloud-hosted and accessed by customers via the internet. The company uses a scheduled release strategy. For each of its products, this includes a beta testing program as a component of quality assurance. Managing the defects reported by beta testers is the focus of your project.
+  description: BetaTrax is a Software as a Service (SaaS) model to deliver those applications to its customers; each product is cloud-hosted and accessed by customers via the internet. BetaTrax uses a scheduled release strategy. For each of its products, this includes a beta testing program as a component of quality assurance. Managing the defects reported by beta testers is the focus of your project.
 paths:
   /developer-metrics/:
     get:
