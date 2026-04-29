@@ -101,8 +101,6 @@ class ReportViewSet(viewsets.ModelViewSet):
             return ReportSubmissionSerializer
         elif self.action == "update":
             return ReportUpdateSerializer
-        elif self.action == "retrieve":
-            return ReportDetailSerializer
         return super().get_serializer_class()
 
     def create(self, request, *args, **kwargs):
@@ -167,19 +165,18 @@ class ReportViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         order = request.GET.get('orderByTime', 'none')
         order = order.lower()
-        print("order by time:", order)
+        reports = self.filter_queryset(self.get_queryset())
         if order in ['asc', 'desc']:
-            reports = Report.objects.all().order_by('-updated_at' if order == 'desc' else 'updated_at')
+            reports = reports.order_by('-updated_at' if order == 'desc' else 'updated_at')
         else:
-            reports = Report.objects.all().order_by('id')  # default order
+            reports = reports.order_by('id')  # default order
         serializer = self.get_serializer(reports, many=True, context={'request': request})
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'], url_path=r'(?P<email_prefix>[a-zA-Z_][\w-]*)')
-    def get_by_dev(self, request, email_prefix=None):
+    def get_by_dev(self, request, email_prefix=None, products_pk=None):
         email = f"{email_prefix}@{request.get_host().split(':')[0]}"
-        product_pk = self.kwargs.get("products_pk")
-        reports = Report.objects.filter(assigned_to__isnull=False, assigned_to__email=email, product_id=product_pk)
+        reports = Report.objects.filter(assigned_to__isnull=False, assigned_to__email=email, product_id=products_pk)
         if len(reports):
             order = request.GET.get('orderByTime', 'none')
             order = order.lower()
