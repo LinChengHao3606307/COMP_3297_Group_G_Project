@@ -20,13 +20,10 @@ class AdminLogicTests(TenantTestCase):
         Ensures the public tenant exists and the test tenant has a valid owner.
         """
         if not Tenant.objects.filter(schema_name='public').exists():
-            try:
-                create_public_tenant(
-                    domain_url="public.testserver", 
-                    owner_email="admin_test_root@test.com"
-                )
-            except ExistsError:
-                pass
+            create_public_tenant(
+                domain_url="public.testserver", 
+                owner_email="admin_test_root@test.com"
+            )
 
         with schema_context(get_public_schema_name()):
             owner, created = User.objects.get_or_create(
