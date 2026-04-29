@@ -146,7 +146,8 @@ class ReportDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
         fields = [
-            "url", "id", "title", "description", "status", "severity", "priority",
+            "url", "id", "title", "description", "steps_to_reproduce",
+            "status", "severity", "priority",
             "product", "assigned_to",
             "email", "comment_count", "comments",
             "duplicated_to", "updated_at"
