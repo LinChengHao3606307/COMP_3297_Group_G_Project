@@ -43,16 +43,20 @@
 ## Lin Chenghao
 ### Vision Document
 - Initial version of vision doc (v 1.0.0)
+- Revise the vision document based on feedback and add incremental features for Release 2.
 ### Use Cases
-- Did not participate in making this
+- Revise some use cases based on feedback, add incremental feature as BT-UC6 for Release 2.
 ### UI Storyboard
 - create tester route, organize and present them in the review
 ### Partial Domain Model
-- make the entire thing
+- Initial version of Domain Model
 ### Product Backlog
 - Wrote the backlog items BT-UC2-1, BT-UC2-2, BT-UC2-3, BT-UC2-4, BT-UC2-5, BT-UC2-6, BT-UC2-7, BT-UC2-8, BT-UC2-9, BT-UC2-10, BT-UC2-11
 ### Source Code
 - Wrote registration model
+- Implemented Multi-tenancy
+- Implemented Developer Metrics
+- Install drf-spectacular for API documentation generation and serve the documentation through a URL.
 
 ## Yam Yat Yin
 ### Use Cases
