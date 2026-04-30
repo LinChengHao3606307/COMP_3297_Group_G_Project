@@ -1,5 +1,12 @@
 # List of Contributions
 ## Chui Tze Yau
+### Use Cases
+- Fixed some major errors from misunderstanding the project
+### Source Code
+- Written most automated test cases
+- Fixed some bugs from implementing multi-tenant (esp. test cases)
+- Fixed unexpected behavior introduced by other teammate's codes (e.g. 301 Redirect on authentication)
+- Removed legacy code found from coverage checks
 
 ## Wong Sonny
 
