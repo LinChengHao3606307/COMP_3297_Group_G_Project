@@ -21,7 +21,16 @@
 - Wrote schema.yaml for api documentations
 
 ## Lin Chenghao
-
+### Vision Document
+- Revise the vision document based on feedback and add incremental features for Release 2.
+### Use Cases
+- Revise some use cases based on feedback, add incremental feature as BT-UC6 for Release 2.
+### UI Storyboard
+- create tester route, organize and present them in the review
+### Source Code
+- Implemented Multi-tenancy
+- Implemented Developer Metrics
+- Install drf-spectacular for API documentation generation and serve the documentation through a URL.
 
 ## Yam Yat Yin
 
