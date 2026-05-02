@@ -68,6 +68,7 @@
 - Added various methods in serializers and viewsets
 - Helped debugging and testing edge cases for others' code
 - More testing on the newly implemented features after integrating PostgreSQL and located various bugs
+- More testing for Sprint 3 and the updated auto tests
 
 ## Liu Chun Yin
 ### Sprint 0
